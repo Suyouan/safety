@@ -205,7 +205,7 @@
 
     <!-- 核心邏輯 -->
     <script>
-        // ====== 1. 多國語言字典 (全頁面同步) ======
+        // ====== 1. 多國語言字典 (全頁面 100% 同一語言) ======
         let currentLang = localStorage.getItem('iso7010_lang') || 'zh';
 
         const i18n = {
@@ -222,6 +222,8 @@
                 scannerTitle: "對準標誌上的 QR-Code",
                 adminTitle: "待審批流程矩陣",
                 pwaTitle: "安裝為 App 獲得最佳體驗",
+                pwaIos: '點擊下方 <i class="fa-solid fa-share-from-square text-amber-500"></i> 分享，選擇<b>「加入主畫面」</b>',
+                pwaAndroid: '點擊瀏覽器選單，選擇<b>「安裝應用程式」</b>',
                 uniqueQr: "獨有 QR-Code",
                 subDirHeader: "注意標誌子目錄矩陣",
                 boxHint: "點選兩次提交 / 長按3秒展開",
@@ -236,6 +238,7 @@
                 emptyAdmin: "目前無任何待審批項目。",
                 cameraDenied: "未取得相機存取權限，直接跳回初始頁面。",
                 pendingAlert: "提交成功！內容已進入「待審批狀態」，等審核通過後，新的資訊與原有的訊息皆會呈現於該框格中。",
+                promptInput: "請輸入新增內容：",
                 categories: {
                     W: "警告標誌",
                     P: "禁止標誌",
@@ -244,12 +247,12 @@
                     F: "消防標誌"
                 },
                 signNames: {
-                    "W-ElectricDanger-L4": "感電注意 (Electricity Danger)",
-                    "W-Slippery-L2": "滑倒危險 (Slippery Surface)",
-                    "P-NoSmoking": "禁止吸菸 (No Smoking)",
-                    "M-WearEyeProtection": "佩戴護目鏡 (Wear Eye Protection)",
-                    "E-FirstAid": "急救站 (First Aid Station)",
-                    "F-Extinguisher": "滅火器 (Fire Extinguisher)"
+                    "W-ElectricDanger-L4": "感電注意",
+                    "W-Slippery-L2": "滑倒危險",
+                    "P-NoSmoking": "禁止吸菸",
+                    "M-WearEyeProtection": "佩戴護目鏡",
+                    "E-FirstAid": "急救站",
+                    "F-Extinguisher": "滅火器"
                 },
                 fields: {
                     frequency: "發生頻率",
@@ -259,6 +262,26 @@
                     administrative: "行政管制",
                     ppe: "個人防護用具",
                     riskLevel: "風險等級"
+                },
+                contentData: {
+                    "W-ElectricDanger-L4": {
+                        frequency: ["高（高壓設備區域）"],
+                        elimination: ["完全斷電程序"],
+                        substitution: ["低壓防爆電路"],
+                        engineering: ["絕緣保護罩與漏電斷路器"],
+                        administrative: ["作業簽核許可制度"],
+                        ppe: ["高壓絕緣手套與防爆鞋"],
+                        riskLevel: ["極高風險（等級 4）"]
+                    },
+                    "W-Slippery-L2": {
+                        frequency: ["中（清潔或下雨時）"],
+                        elimination: ["定期清理油污"],
+                        substitution: ["防滑吸油墊"],
+                        engineering: ["加設止滑條"],
+                        administrative: ["設置濕滑警示牌"],
+                        ppe: ["防滑安全鞋"],
+                        riskLevel: ["中等風險（等級 2）"]
+                    }
                 }
             },
             en: {
@@ -274,6 +297,8 @@
                 scannerTitle: "Align QR-Code in frame",
                 adminTitle: "Approval Matrix Queue",
                 pwaTitle: "Install App for Best Experience",
+                pwaIos: 'Tap <i class="fa-solid fa-share-from-square text-amber-500"></i> Share below, select <b>"Add to Home Screen"</b>',
+                pwaAndroid: 'Tap browser menu, select <b>"Install App"</b>',
                 uniqueQr: "Unique QR-Code",
                 subDirHeader: "Warning Sign Sub-directory Matrix",
                 boxHint: "Double-click submit / Press 3s expand",
@@ -288,6 +313,7 @@
                 emptyAdmin: "No pending approval items.",
                 cameraDenied: "Camera permission denied, returned to main page.",
                 pendingAlert: "Submitted! Entry is now in 'Pending Approval' state.",
+                promptInput: "Enter new content:",
                 categories: {
                     W: "Warning Sign",
                     P: "Prohibition Sign",
@@ -311,6 +337,26 @@
                     administrative: "Administrative Controls",
                     ppe: "Personal Protective Equipment",
                     riskLevel: "Risk Level"
+                },
+                contentData: {
+                    "W-ElectricDanger-L4": {
+                        frequency: ["High (High-voltage equipment area)"],
+                        elimination: ["Complete lockout/tagout procedure"],
+                        substitution: ["Low-voltage explosion-proof circuit"],
+                        engineering: ["Insulation cover and ELCB"],
+                        administrative: ["Work permit sign-off system"],
+                        ppe: ["High-voltage insulating gloves & boots"],
+                        riskLevel: ["Extremely High Risk (Level 4)"]
+                    },
+                    "W-Slippery-L2": {
+                        frequency: ["Medium (During cleaning or rain)"],
+                        elimination: ["Regular oil spill cleanup"],
+                        substitution: ["Anti-slip oil absorption mat"],
+                        engineering: ["Install anti-slip strips"],
+                        administrative: ["Post warning signs"],
+                        ppe: ["Anti-slip safety shoes"],
+                        riskLevel: ["Medium Risk (Level 2)"]
+                    }
                 }
             },
             de: {
@@ -326,6 +372,8 @@
                 scannerTitle: "QR-Code ausrichten",
                 adminTitle: "Genehmigungs-Matrix Warteschlange",
                 pwaTitle: "App installieren für beste Erfahrung",
+                pwaIos: 'Tippen Sie unten auf <i class="fa-solid fa-share-from-square text-amber-500"></i> Teilen, wählen Sie <b>"Zum Home-Bildschirm"</b>',
+                pwaAndroid: 'Tippen Sie auf das Menü, wählen Sie <b>"App installieren"</b>',
                 uniqueQr: "Eindeutiger QR-Code",
                 subDirHeader: "Warnzeichen Unterverzeichnis-Matrix",
                 boxHint: "Doppelklick Senden / 3s halten Öffnen",
@@ -340,6 +388,7 @@
                 emptyAdmin: "Keine ausstehenden Anträge.",
                 cameraDenied: "Kamerazugriff verweigert, zurück zur Hauptseite.",
                 pendingAlert: "Eingereicht! Eintrag befindet sich im Status 'Ausstehend'.",
+                promptInput: "Neuen Inhalt eingeben:",
                 categories: {
                     W: "Warnzeichen",
                     P: "Verbotszeichen",
@@ -363,55 +412,48 @@
                     administrative: "Organisatorische Maßnahmen",
                     ppe: "Persönliche Schutzausrüstung",
                     riskLevel: "Risikostufe"
+                },
+                contentData: {
+                    "W-ElectricDanger-L4": {
+                        frequency: ["Hoch (Hochspannungsbereich)"],
+                        elimination: ["Vollständiges Freischaltverfahren"],
+                        substitution: ["Niederspannungs-Explosionsschutzkreis"],
+                        engineering: ["Isolierabdeckung und FI-Schutzschalter"],
+                        administrative: ["Arbeitsgenehmigungssystem"],
+                        ppe: ["Isolierhandschuhe & Sicherheitsschuhe"],
+                        riskLevel: ["Extrem hohes Risiko (Stufe 4)"]
+                    },
+                    "W-Slippery-L2": {
+                        frequency: ["Mittel (Bei Reinigung oder Regen)"],
+                        elimination: ["Regelmäßige Beseitigung von Ölspuren"],
+                        substitution: ["Rutschfeste Ölabsorptionsmatte"],
+                        engineering: ["Anbringen von Anti-Rutsch-Streifen"],
+                        administrative: ["Warnschilder aufstellen"],
+                        ppe: ["Rutschfeste Sicherheitsschuhe"],
+                        riskLevel: ["Mittleres Risiko (Stufe 2)"]
+                    }
                 }
             }
         };
 
-        // ====== 2. ISO 7010 資料庫預設值 ======
+        // ====== 2. ISO 7010 資料庫架構 ======
         const defaultDatabase = [
-            {
-                id: "W-ElectricDanger-L4",
-                category: "W",
-                level: 4,
-                iconClass: "fa-bolt",
-                fields: {
-                    frequency: ["高 (高壓設備區域)"],
-                    elimination: ["完全斷電程序"],
-                    substitution: ["低壓防爆電路"],
-                    engineering: ["絕緣保護罩與漏電斷路器"],
-                    administrative: ["作業簽核許可制度"],
-                    ppe: ["高壓絕緣手套與防爆鞋"],
-                    riskLevel: ["極高風險 (等級 4)"]
-                }
-            },
-            {
-                id: "W-Slippery-L2",
-                category: "W",
-                level: 2,
-                iconClass: "fa-person-falling-burst",
-                fields: {
-                    frequency: ["中 (清潔或下雨時)"],
-                    elimination: ["定期清理油污"],
-                    substitution: ["防滑吸油墊"],
-                    engineering: ["加設止滑條"],
-                    administrative: ["設置濕滑警示牌"],
-                    ppe: ["防滑安全鞋"],
-                    riskLevel: ["中等風險 (等級 2)"]
-                }
-            },
-            { id: "P-NoSmoking", category: "P", level: null, fields: null, iconClass: "fa-ban-smoking" },
-            { id: "M-WearEyeProtection", category: "M", level: null, fields: null, iconClass: "fa-glasses" },
-            { id: "E-FirstAid", category: "E", level: null, fields: null, iconClass: "fa-kit-medical" },
-            { id: "F-Extinguisher", category: "F", level: null, fields: null, iconClass: "fa-fire-extinguisher" }
+            { id: "W-ElectricDanger-L4", category: "W", level: 4, iconClass: "fa-bolt", hasFields: true },
+            { id: "W-Slippery-L2", category: "W", level: 2, iconClass: "fa-person-falling-burst", hasFields: true },
+            { id: "P-NoSmoking", category: "P", level: null, hasFields: false, iconClass: "fa-ban-smoking" },
+            { id: "M-WearEyeProtection", category: "M", level: null, hasFields: false, iconClass: "fa-glasses" },
+            { id: "E-FirstAid", category: "E", level: null, hasFields: false, iconClass: "fa-kit-medical" },
+            { id: "F-Extinguisher", category: "F", level: null, hasFields: false, iconClass: "fa-fire-extinguisher" }
         ];
 
-        let database = JSON.parse(localStorage.getItem('iso7010_db')) || defaultDatabase;
-        let approvalQueue = JSON.parse(localStorage.getItem('iso7010_queue')) || [];
+        let database = JSON.parse(localStorage.getItem('iso7010_db_v2')) || defaultDatabase;
+        let approvalQueue = JSON.parse(localStorage.getItem('iso7010_queue_v2')) || [];
+        let dynamicAdditions = JSON.parse(localStorage.getItem('iso7010_additions_v2')) || {}; 
         let currentSignId = "W-ElectricDanger-L4";
         let isDatabaseViewActive = false;
 
-        function saveDB() { localStorage.setItem('iso7010_db', JSON.stringify(database)); }
-        function saveQueue() { localStorage.setItem('iso7010_queue', JSON.stringify(approvalQueue)); }
+        function saveQueue() { localStorage.setItem('iso7010_queue_v2', JSON.stringify(approvalQueue)); }
+        function saveAdditions() { localStorage.setItem('iso7010_additions_v2', JSON.stringify(dynamicAdditions)); }
 
         // ====== 3. 多國語言與全介面同步切換 ======
         function changeLanguage(lang) {
@@ -441,6 +483,7 @@
             document.getElementById('ui-scanner-title').innerText = t.scannerTitle;
             document.getElementById('ui-admin-title').innerText = t.adminTitle;
             document.getElementById('ui-pwa-title').innerText = t.pwaTitle;
+            setupPWAInstructions();
         }
 
         // 初始化
@@ -448,7 +491,6 @@
             applyTranslations();
             renderSignDetail(currentSignId);
             initLongPressAdmin();
-            setupPWAInstructions();
         });
 
         // ====== 4. 主標題長按 3 秒進入後台審批 ======
@@ -488,7 +530,7 @@
                 return;
             }
 
-            // ISO 7010 黃色警告三角形與等級呈現 (數字在三角形正下方)
+            // ISO 7010 黃色警告三角形與等級呈現
             let visualHtml = '';
             if (item.category === 'W') {
                 visualHtml = `
@@ -514,7 +556,7 @@
 
             // 子目錄 6 大資訊 + 風險等級
             let fieldsHtml = '';
-            if (item.fields) {
+            if (item.hasFields) {
                 const mapKeys = [
                     { key: 'frequency', label: t.fields.frequency },
                     { key: 'elimination', label: t.fields.elimination },
@@ -525,9 +567,14 @@
                     { key: 'riskLevel', label: t.fields.riskLevel, isRed: true }
                 ];
 
+                const baseContent = (t.contentData && t.contentData[item.id]) ? t.contentData[item.id] : {};
+
                 let cardsHtml = mapKeys.map(info => {
-                    const list = item.fields[info.key] || [];
-                    const itemsText = list.join('； ');
+                    const defaultList = baseContent[info.key] || [];
+                    const addedList = (dynamicAdditions[item.id] && dynamicAdditions[item.id][info.key]) ? dynamicAdditions[item.id][info.key] : [];
+                    
+                    const combinedList = [...defaultList, ...addedList];
+                    const itemsText = combinedList.join('； ');
 
                     return `
                         <div ondblclick="triggerDoubleClickSubmit('${item.id}', '${info.key}', '${info.label}')" 
@@ -583,7 +630,7 @@
                     ${fieldsHtml}
                 </div>`;
 
-            // 動態生成 QR Code (內容即為流水 ID)
+            // 動態生成 QR Code
             setTimeout(() => {
                 const box = document.getElementById("qrcode-box");
                 if (box) {
@@ -626,7 +673,7 @@
         // ====== 6. 雙擊框格提交輸入 ======
         function triggerDoubleClickSubmit(signId, fieldKey, fieldLabel) {
             const t = i18n[currentLang];
-            const userInput = prompt(`[${fieldLabel}]\nPath: ${signId}\n\nEnter input:`);
+            const userInput = prompt(`[${fieldLabel}]\nPath: ${signId}\n\n${t.promptInput}`);
             if (userInput && userInput.trim() !== '') {
                 const record = {
                     id: Date.now(),
@@ -763,12 +810,11 @@
         function approveApproval(id) {
             const item = approvalQueue.find(x => x.id === id);
             if (item) {
-                const target = database.find(x => x.id === item.signId);
-                if (target && target.fields) {
-                    if (!target.fields[item.fieldKey]) target.fields[item.fieldKey] = [];
-                    target.fields[item.fieldKey].push(item.content);
-                    saveDB();
-                }
+                if (!dynamicAdditions[item.signId]) dynamicAdditions[item.signId] = {};
+                if (!dynamicAdditions[item.signId][item.fieldKey]) dynamicAdditions[item.signId][item.fieldKey] = [];
+                
+                dynamicAdditions[item.signId][item.fieldKey].push(item.content);
+                saveAdditions();
 
                 approvalQueue = approvalQueue.filter(x => x.id !== id);
                 saveQueue();
@@ -787,10 +833,11 @@
         function setupPWAInstructions() {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             const el = document.getElementById('pwa-instructions');
+            const t = i18n[currentLang];
             if (isIOS) {
-                el.innerHTML = '點擊下方 <i class="fa-solid fa-share-from-square text-amber-500"></i> 分享，選擇<b>「加入主畫面」</b>';
+                el.innerHTML = t.pwaIos;
             } else {
-                el.innerHTML = '點擊瀏覽器選單，選擇<b>「安裝應用程式」</b>';
+                el.innerHTML = t.pwaAndroid;
             }
             if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
                 document.getElementById('pwa-toast').style.display = 'none';
