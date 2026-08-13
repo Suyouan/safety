@@ -45,7 +45,7 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; }
         
-        /* ISO 7010 三角形樣式 (黃底黑邊感) */
+        /* ISO 7010 黃色警告三角形樣式 */
         .iso-triangle-container {
             width: 0;
             height: 0;
@@ -64,10 +64,10 @@
             font-size: 1.5rem;
         }
 
-        /* 圓形 (禁止/強制) */
+        /* 圓形 (禁止/強制/救援) */
         .iso-circle { border-radius: 50%; }
 
-        /* 文字截斷 */
+        /* 文字截斷 (多行截斷並顯示 ...) */
         .truncate-text {
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -129,12 +129,12 @@
     <!-- Modal: 文字查詢 (T) -->
     <div id="search-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center px-4">
         <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
-            <h3 class="font-bold text-gray-900 text-base">輸入流水 ID 查詢標誌</h3>
-            <p class="text-xs text-gray-500">格式：英文開頭-意思(-等級)</p>
+            <h3 class="font-bold text-gray-900 text-base">輸入流水編號查詢標誌</h3>
+            <p class="text-xs text-gray-500">格式：英文類別-意思(-等級)</p>
             <input type="text" id="search-input" placeholder="例如: W-ElectricDanger-L4 或 P-NoSmoking" class="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-amber-500">
             <div class="flex space-x-2">
                 <button onclick="closeSearchModal()" class="w-1/2 py-2.5 rounded-xl border border-gray-300 text-gray-600 font-medium text-sm">取消</button>
-                <button onclick="performSearch()" class="w-1/2 py-2.5 rounded-xl bg-amber-400 text-slate-900 font-bold text-sm">查詢</button>
+                <button onclick="performSearch()" class="w-1/2 py-2.5 rounded-xl bg-amber-400 text-slate-900 font-bold text-sm">確認</button>
             </div>
         </div>
     </div>
@@ -162,6 +162,18 @@
             </div>
             <div id="admin-queue" class="overflow-y-auto space-y-3 flex-1 pr-1">
                 <!-- 審批佇列動態載入 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: 詳細內容展開視窗 (長按 3 秒觸發) -->
+    <div id="detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h4 id="detail-modal-title" class="font-bold text-gray-900 text-sm">詳細內容</h4>
+                <button onclick="closeDetailModal()" class="text-gray-400 p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="detail-modal-body" class="text-xs text-gray-700 space-y-2 max-h-[60vh] overflow-y-auto leading-relaxed">
             </div>
         </div>
     </div>
@@ -195,12 +207,12 @@
                 iconClass: "fa-bolt",
                 fields: {
                     frequency: ["高 (高壓設備區域)"],
-                    elimination: ["高壓檢修作業實施斷電"],
-                    substitution: ["升級低壓防爆電路控制"],
-                    engineering: ["加裝絕緣保護罩與漏電斷路器"],
-                    administrative: ["設置警示標示與作業簽核"],
-                    ppe: ["絕緣手套、絕緣鞋、防電弧面罩"],
-                    riskLevel: ["極高 (等級 4)"]
+                    elimination: ["高壓檢修作業實施完全斷電程序"],
+                    substitution: ["升級低壓防爆電路與控制模組"],
+                    engineering: ["加裝絕緣保護罩與自動漏電斷路器"],
+                    administrative: ["設置高壓警示標示與作業簽核許可制度"],
+                    ppe: ["高壓絕緣手套、絕緣防護鞋、防電弧面罩"],
+                    riskLevel: ["極高風險 (等級 4)"]
                 }
             },
             {
@@ -211,13 +223,13 @@
                 level: 2,
                 iconClass: "fa-person-falling-burst",
                 fields: {
-                    frequency: ["中 (地面積水區)"],
-                    elimination: ["定期清理地面油污"],
-                    substitution: ["鋪設防滑吸油墊"],
-                    engineering: ["加設止滑條與排水溝槽"],
-                    administrative: ["濕滑期間設置警告立牌"],
-                    ppe: ["防滑安全鞋"],
-                    riskLevel: ["中等 (等級 2)"]
+                    frequency: ["中 (作業區地面積水區域)"],
+                    elimination: ["定期清理與改善地面油污洩漏"],
+                    substitution: ["鋪設防滑吸油墊與高磨砂地墊"],
+                    engineering: ["加設止滑條與自動排水溝槽"],
+                    administrative: ["濕滑清理期間設置警告立牌與圍欄"],
+                    ppe: ["防滑耐油安全鞋"],
+                    riskLevel: ["中等風險 (等級 2)"]
                 }
             },
             {
@@ -275,7 +287,7 @@
             setupPWAInstructions();
         });
 
-        // ====== 2. 主標題長按 3 秒進入後台 ======
+        // ====== 2. 主標題長按 3 秒進入後台審批 ======
         function initLongPressAdmin() {
             let pressTimer = null;
             const titleEl = document.getElementById('main-title');
@@ -298,7 +310,7 @@
             titleEl.addEventListener('mouseleave', cancelPress);
         }
 
-        // ====== 3. 畫面渲染：單一標誌詳情 ======
+        // ====== 3. 畫面渲染：單一標誌詳情與子目錄 ======
         function renderSignDetail(id) {
             const item = database.find(x => x.id === id);
             const container = document.getElementById('app-content');
@@ -308,24 +320,26 @@
                     <div class="bg-white p-8 rounded-2xl text-center border border-gray-200 shadow-sm">
                         <i class="fa-solid fa-circle-exclamation text-amber-500 text-4xl mb-3"></i>
                         <h3 class="font-bold text-gray-800">未找到相符標誌</h3>
-                        <p class="text-xs text-gray-500 mt-1">查詢流水號: ${id}</p>
+                        <p class="text-xs text-gray-500 mt-1">流水號：${id}</p>
                         <button onclick="showDatabaseView()" class="mt-4 bg-amber-400 px-4 py-2 rounded-xl text-xs font-bold">檢視完整資料庫</button>
                     </div>`;
                 return;
             }
 
-            // ISO 標誌視覺繪製
+            // ISO 標誌視覺繪製 (警告標誌為黃色三角形且等級數字呈現於三角形下方)
             let visualHtml = '';
             if (item.category === 'W') {
-                // 三角形標誌，等級呈現於三角形下方
                 visualHtml = `
                     <div class="flex flex-col items-center">
                         <div class="iso-triangle-container">
                             <i class="fa-solid ${item.iconClass} iso-triangle-icon"></i>
                         </div>
-                        <span class="text-xs font-black text-amber-900 bg-amber-300 px-3 py-0.5 rounded-full mt-2 border border-amber-400 shadow-sm">
-                            等級 ${item.level}
-                        </span>
+                        <!-- 等級數字呈現於三角形下方 -->
+                        <div class="mt-2 text-center">
+                            <span class="text-xs font-black text-amber-900 bg-amber-300 px-3 py-0.5 rounded-full border border-amber-400 shadow-sm">
+                                等級 ${item.level}
+                            </span>
+                        </div>
                     </div>`;
             } else {
                 let bgClass = item.category === 'P' ? 'bg-red-600' : (item.category === 'M' ? 'bg-blue-600' : 'bg-emerald-600');
@@ -337,35 +351,34 @@
                     </div>`;
             }
 
-            // 子目錄六大資訊 + 風險等級 (可雙擊提交)
+            // 子目錄 6 大資訊 + 風險等級框格
             let fieldsHtml = '';
             if (item.fields) {
                 const mapKeys = [
-                    { key: 'frequency', label: '1. 發生頻率' },
-                    { key: 'elimination', label: '2. 消除' },
-                    { key: 'substitution', label: '3. 取代' },
-                    { key: 'engineering', label: '4. 工程管制' },
-                    { key: 'administrative', label: '5. 行政管制' },
-                    { key: 'ppe', label: '6. 個人防護用具' },
-                    { key: 'riskLevel', label: '7. 風險等級', isRed: true }
+                    { key: 'frequency', label: '發生頻率' },
+                    { key: 'elimination', label: '消除' },
+                    { key: 'substitution', label: '取代' },
+                    { key: 'engineering', label: '工程管制' },
+                    { key: 'administrative', label: '行政管制' },
+                    { key: 'ppe', label: '個人防護用具' },
+                    { key: 'riskLevel', label: '風險等級', isRed: true }
                 ];
 
                 let cardsHtml = mapKeys.map(info => {
                     const list = item.fields[info.key] || [];
-                    const itemsRender = list.map((text, idx) => `
-                        <div onclick="toggleExpand(this)" class="cursor-pointer text-xs ${idx === 0 ? 'font-bold text-gray-800' : 'text-gray-600 border-t pt-1 mt-1 border-gray-100'} truncate-text" title="點擊展開/收合">
-                            ${text}
-                        </div>`).join('');
+                    const itemsText = list.join('； ');
 
                     return `
                         <div ondblclick="triggerDoubleClickSubmit('${item.id}', '${info.key}', '${info.label}')" 
-                             class="p-3 ${info.isRed ? 'bg-red-50/70 border-red-200' : 'bg-gray-50 border-gray-200'} border rounded-xl relative hover:border-amber-400 transition cursor-pointer">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[10px] font-bold ${info.isRed ? 'text-red-700' : 'text-gray-400'}">${info.label}</span>
-                                <span class="text-[9px] text-gray-300">💡 雙擊提交</span>
+                             data-label="${info.label}"
+                             data-text="${itemsText || '暫無資料'}"
+                             class="field-box p-3 ${info.isRed ? 'bg-red-50/70 border-red-200' : 'bg-gray-50 border-gray-200'} border rounded-xl relative hover:border-amber-400 transition cursor-pointer select-none">
+                            <div class="flex justify-between items-center mb-1 pointer-events-none">
+                                <span class="text-[11px] font-bold ${info.isRed ? 'text-red-700' : 'text-gray-500'}">${info.label}</span>
+                                <span class="text-[9px] text-gray-300">點選兩次提交 / 長按3秒展開</span>
                             </div>
-                            <div class="space-y-1">
-                                ${itemsRender || '<span class="text-xs text-gray-300 italic">暫無資料</span>'}
+                            <div class="text-xs text-gray-800 font-medium truncate-text pointer-events-none">
+                                ${itemsText || '<span class="text-gray-300 italic">暫無資料</span>'}
                             </div>
                         </div>`;
                 }).join('');
@@ -374,9 +387,8 @@
                     <div class="space-y-3 pt-2">
                         <div class="flex justify-between items-center">
                             <h4 class="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-list-check text-amber-500"></i> 控制措施與風險矩陣
+                                <i class="fa-solid fa-list-check text-amber-500"></i> 注意標誌子目錄矩陣
                             </h4>
-                            <span class="text-[10px] text-gray-400">雙擊框格可提交新資訊</span>
                         </div>
                         <div class="grid grid-cols-1 gap-2.5">
                             ${cardsHtml}
@@ -400,14 +412,14 @@
                         ${visualHtml}
                         <div class="flex flex-col items-center">
                             <div id="qrcode-box" class="p-2 bg-white rounded-xl border border-gray-200 shadow-sm"></div>
-                            <span class="text-[10px] text-gray-400 mt-1">專屬 QR-Code</span>
+                            <span class="text-[10px] text-gray-400 mt-1">獨有 QR-Code</span>
                         </div>
                     </div>
 
                     ${fieldsHtml}
                 </div>`;
 
-            // 動態生成 QR Code
+            // 動態生成專屬 QR Code
             setTimeout(() => {
                 const box = document.getElementById("qrcode-box");
                 if (box) {
@@ -418,15 +430,68 @@
                         height: 70
                     });
                 }
+                bindLongPressEvents();
             }, 50);
         }
 
-        // 文字過長展開/折疊
-        function toggleExpand(el) {
-            el.classList.toggle('truncate-text');
+        // 綁定個別框格的「長按 3 秒展開」事件
+        function bindLongPressEvents() {
+            const boxes = document.querySelectorAll('.field-box');
+            boxes.forEach(box => {
+                let timer = null;
+                const label = box.getAttribute('data-label');
+                const text = box.getAttribute('data-text');
+
+                function start() {
+                    timer = setTimeout(() => {
+                        openDetailModal(label, text);
+                    }, 3000);
+                }
+
+                function cancel() {
+                    if (timer) clearTimeout(timer);
+                }
+
+                box.addEventListener('touchstart', start, { passive: true });
+                box.addEventListener('touchend', cancel);
+                box.addEventListener('touchcancel', cancel);
+                box.addEventListener('mousedown', start);
+                box.addEventListener('mouseup', cancel);
+                box.addEventListener('mouseleave', cancel);
+            });
         }
 
-        // ====== 4. 完整資料庫檢視 (📦) ======
+        // ====== 4. 展開詳細內容 Modal ======
+        function openDetailModal(title, content) {
+            document.getElementById('detail-modal-title').innerText = title;
+            document.getElementById('detail-modal-body').innerText = content;
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        // ====== 5. 雙擊框格提交輸入機制 ======
+        function triggerDoubleClickSubmit(signId, fieldKey, fieldLabel) {
+            const userInput = prompt(`[雙擊提交 - 進入待審批狀態]\n路徑：${signId} ➔ ${fieldLabel}\n\n請輸入欲新增的內容：`);
+            if (userInput && userInput.trim() !== '') {
+                const record = {
+                    id: Date.now(),
+                    signId: signId,
+                    fieldKey: fieldKey,
+                    fieldLabel: fieldLabel,
+                    content: userInput.trim(),
+                    time: new Date().toLocaleString('zh-TW')
+                };
+
+                approvalQueue.push(record);
+                saveQueue();
+
+                alert(`提交成功！內容已進入「待審批狀態」，等審核通過後，新的資訊與原有的訊息皆會呈現於該框格中。`);
+            }
+        }
+
+        // ====== 6. 📦 完整資料庫檢視 ======
         function showDatabaseView() {
             const container = document.getElementById('app-content');
             let cards = database.map(item => `
@@ -446,34 +511,14 @@
             container.innerHTML = `
                 <div class="space-y-3">
                     <div class="flex justify-between items-center mb-1">
-                        <h3 class="font-bold text-gray-800 text-sm">完整 ISO 7010 標誌資料庫</h3>
+                        <h3 class="font-bold text-gray-800 text-sm">ISO 7010 標誌資料庫</h3>
                         <span class="text-xs text-gray-400">共 ${database.length} 筆</span>
                     </div>
                     ${cards}
                 </div>`;
         }
 
-        // ====== 5. 雙擊提交機制 (Double Click) ======
-        function triggerDoubleClickSubmit(signId, fieldKey, fieldLabel) {
-            const userInput = prompt(`[雙擊提交 - 進入待審批流程]\n路徑：${signId} ➔ ${fieldLabel}\n\n請輸入欲新增的內容：`);
-            if (userInput && userInput.trim() !== '') {
-                const record = {
-                    id: Date.now(),
-                    signId: signId,
-                    fieldKey: fieldKey,
-                    fieldLabel: fieldLabel,
-                    content: userInput.trim(),
-                    time: new Date().toLocaleString('zh-TW')
-                };
-
-                approvalQueue.push(record);
-                saveQueue();
-
-                alert(`提交成功！\n資料已進入「待審批狀態」，經後台審核通過後，會自動在該路徑下新增顯示。`);
-            }
-        }
-
-        // ====== 6. T 文字搜尋 Modal ======
+        // ====== 7. T 文字搜尋 Modal ======
         function openSearchModal() { document.getElementById('search-modal').classList.remove('hidden'); }
         function closeSearchModal() { document.getElementById('search-modal').classList.add('hidden'); }
         function performSearch() {
@@ -484,7 +529,7 @@
             }
         }
 
-        // ====== 7. 📷 相機掃碼 Modal與拒絕權限處理 ======
+        // ====== 8. 📷 相機掃碼 Modal (拒絕則跳回初始頁面) ======
         let html5QrCode = null;
         function openScannerModal() {
             document.getElementById('scanner-modal').classList.remove('hidden');
@@ -495,12 +540,13 @@
                 { fps: 10, qrbox: { width: 200, height: 200 } },
                 (decodedText) => {
                     closeScannerModal();
+                    // 解碼取得流水號後，顯示資訊與文字搜尋一致
                     renderSignDetail(decodedText);
                 },
                 (errorMessage) => { /* 忽略中間幀解析失敗 */ }
             ).catch((err) => {
-                // 使用者不允許開啟相機時，跳提示並直接退回最原始畫面
-                alert("未取得相機存取權限，已退回初始頁面。");
+                // 使用者不允許相機時，直接跳回一開始的頁面
+                alert("未取得相機存取權限，直接跳回初始頁面。");
                 closeScannerModal();
             });
         }
@@ -520,7 +566,7 @@
             }
         }
 
-        // ====== 8. 後台審批流程 (Admin Modal) ======
+        // ====== 9. 後台審批流程 (Admin Modal) ======
         function openAdminModal() {
             const queueContainer = document.getElementById('admin-queue');
             if (approvalQueue.length === 0) {
@@ -539,8 +585,8 @@
                             輸入內容：${item.content}
                         </div>
                         <div class="flex justify-end space-x-2 pt-1">
-                            <button onclick="rejectApproval(${item.id})" class="px-3 py-1 bg-gray-200 text-gray-700 rounded font-bold">駁回</button>
-                            <button onclick="approveApproval(${item.id})" class="px-3 py-1 bg-emerald-600 text-white rounded font-bold">同意通過</button>
+                            <button onclick="rejectApproval(${item.id})" class="px-3 py-1 bg-gray-200 text-gray-700 rounded font-bold">否決</button>
+                            <button onclick="approveApproval(${item.id})" class="px-3 py-1 bg-emerald-600 text-white rounded font-bold">確認通過</button>
                         </div>
                     </div>`).join('');
             }
@@ -557,7 +603,7 @@
                 const target = database.find(x => x.id === item.signId);
                 if (target && target.fields) {
                     if (!target.fields[item.fieldKey]) target.fields[item.fieldKey] = [];
-                    // 新增核准的訊息進矩陣
+                    // 審核通過：在該路徑矩陣中新增審核過的訊息 (新舊訊息並存)
                     target.fields[item.fieldKey].push(item.content);
                     saveDB();
                 }
@@ -567,7 +613,7 @@
 
                 openAdminModal();
                 renderSignDetail(item.signId);
-                alert("審核通過！該訊息已順利新增至對應矩陣中。");
+                alert("審核通過！該訊息已順利新增至矩陣中。");
             }
         }
 
