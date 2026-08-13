@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>安全文化與安全意識</title>
+    <title>ISO 7010 安全標誌與文化意識</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome 圖示 -->
+    <!-- FontAwesome 圖示 CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- QR Code 生成與 HTML5 相機掃描 Libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
 
-    <!-- PWA 標籤設定 -->
+    <!-- PWA Meta 設定 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="安全文化與意識">
+    <meta name="apple-mobile-web-app-title" content="安全標誌庫">
     <meta name="theme-color" content="#ffffff">
 
-    <!-- 動態產生 PWA Manifest -->
+    <!-- 動態生成 PWA Web App Manifest -->
     <script>
-        const manifest = {
-            "name": "安全文化與安全意識",
-            "short_name": "安全文化與意識",
+        const manifestData = {
+            "name": "ISO 7010 安全標誌與文化意識",
+            "short_name": "安全標誌",
             "start_url": ".",
             "display": "standalone",
             "background_color": "#f9fafb",
@@ -35,40 +35,68 @@
                 "type": "image/png"
             }]
         };
-        const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        const link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = URL.createObjectURL(blob);
-        document.head.appendChild(link);
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = URL.createObjectURL(manifestBlob);
+        document.head.appendChild(manifestLink);
     </script>
 
     <style>
         body { -webkit-tap-highlight-color: transparent; }
-        .iso-triangle { clip-path: polygon(50% 5%, 0% 95%, 100% 95%); }
+        
+        /* ISO 7010 三角形樣式 (黃底黑邊感) */
+        .iso-triangle-container {
+            width: 0;
+            height: 0;
+            border-left: 45px solid transparent;
+            border-right: 45px solid transparent;
+            border-bottom: 78px solid #f59e0b;
+            position: relative;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+        }
+        .iso-triangle-icon {
+            position: absolute;
+            top: 38px;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #0f172a;
+            font-size: 1.5rem;
+        }
+
+        /* 圓形 (禁止/強制) */
         .iso-circle { border-radius: 50%; }
+
+        /* 文字截斷 */
+        .truncate-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased pb-24 min-h-screen relative select-none">
 
-    <!-- 1. 左上角 1/9 區隱藏觸發後台 (長按 3 秒) -->
-    <div id="admin-trigger" class="fixed top-0 left-0 w-1/3 h-1/3 z-50 cursor-pointer select-none flex items-start justify-start p-2" title="隱藏區域：長按 3 秒進入後台審批">
-        <span id="press-feedback" class="text-[10px] bg-slate-900/80 text-white px-2 py-1 rounded hidden">長按 3 秒中...</span>
-    </div>
-
-    <!-- 2. 頂部導覽列 -->
-    <header class="sticky top-0 bg-white/90 backdrop-blur-md border-b border-gray-200 z-40 px-4 py-3 shadow-sm">
+    <!-- 1. 頂部導覽列與長按觸發後台主標題 -->
+    <header class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-200 z-40 px-4 py-3 shadow-sm">
         <div class="max-w-md mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-2.5">
+            <!-- 核心主標題：長按 3 秒觸發審批流程 -->
+            <div id="main-title" class="flex items-center space-x-2.5 cursor-pointer active:opacity-70 transition relative">
                 <div class="w-8 h-8 bg-amber-400 text-slate-900 rounded-lg flex items-center justify-center font-black text-sm shadow-sm">
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
-                <span class="font-bold text-gray-900 tracking-tight text-base">安全文化與安全意識</span>
+                <div>
+                    <h1 class="font-bold text-gray-900 tracking-tight text-base leading-tight">ISO 7010 安全標誌庫</h1>
+                    <span id="title-hint" class="text-[10px] text-gray-400 block">💡 長按標題 3 秒進入審批後台</span>
+                </div>
             </div>
-            <span class="text-[11px] font-semibold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">PWA 版</span>
+            <span class="text-[11px] font-semibold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">PWA</span>
         </div>
     </header>
 
-    <!-- 3. 三大快捷鍵 (T / 相機 / 資料庫) -->
+    <!-- 2. 三大快捷鍵 (T / 相機 / 資料庫) -->
     <section class="max-w-md mx-auto px-4 mt-4">
         <div class="grid grid-cols-3 gap-3 bg-white p-2 rounded-2xl border border-gray-200 shadow-sm">
             <!-- T 文字搜尋 -->
@@ -93,16 +121,17 @@
         </div>
     </section>
 
-    <!-- 4. 主要內容區域 -->
-    <main id="app-content" class="max-w-md mx-auto px-4 mt-6">
-        <!-- 內容由 JS 動態渲染 -->
+    <!-- 3. 主要內容渲染區 -->
+    <main id="app-content" class="max-w-md mx-auto px-4 mt-5">
+        <!-- JS 動態載入畫面 -->
     </main>
 
-    <!-- 5. 搜尋 Modal 彈窗 -->
+    <!-- Modal: 文字查詢 (T) -->
     <div id="search-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center px-4">
         <div class="bg-white w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
             <h3 class="font-bold text-gray-900 text-base">輸入流水 ID 查詢標誌</h3>
-            <input type="text" id="search-input" placeholder="例如: W-Electric-L4 或 P-NoSmoking" class="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-amber-500">
+            <p class="text-xs text-gray-500">格式：英文開頭-意思(-等級)</p>
+            <input type="text" id="search-input" placeholder="例如: W-ElectricDanger-L4 或 P-NoSmoking" class="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-amber-500">
             <div class="flex space-x-2">
                 <button onclick="closeSearchModal()" class="w-1/2 py-2.5 rounded-xl border border-gray-300 text-gray-600 font-medium text-sm">取消</button>
                 <button onclick="performSearch()" class="w-1/2 py-2.5 rounded-xl bg-amber-400 text-slate-900 font-bold text-sm">查詢</button>
@@ -110,41 +139,41 @@
         </div>
     </div>
 
-    <!-- 6. 相機掃描器 Modal 彈窗 -->
+    <!-- Modal: 相機掃碼 -->
     <div id="scanner-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center px-4">
         <div class="bg-white w-full max-w-sm rounded-2xl p-4 shadow-2xl space-y-3 relative">
             <div class="flex justify-between items-center">
                 <h3 class="font-bold text-gray-900 text-sm">對準標誌上的 QR-Code</h3>
                 <button onclick="closeScannerModal()" class="text-gray-400 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div id="reader" class="w-full rounded-xl overflow-hidden bg-black min-h-[200px] flex items-center justify-center"></div>
+            <div id="reader" class="w-full rounded-xl overflow-hidden bg-black min-h-[220px] flex items-center justify-center"></div>
         </div>
     </div>
 
-    <!-- 7. 後台審批流程 Modal -->
+    <!-- Modal: 後台審批流程 -->
     <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-4">
-        <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4 max-h-[80vh] flex flex-col">
+        <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center border-b pb-3">
                 <div class="flex items-center space-x-2">
                     <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold">後台</span>
-                    <h3 class="font-bold text-gray-900 text-base">待審批「新增資料」清單</h3>
+                    <h3 class="font-bold text-gray-900 text-base">待審批流程矩陣</h3>
                 </div>
                 <button onclick="closeAdminModal()" class="text-gray-400 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div id="admin-queue" class="overflow-y-auto space-y-3 flex-1 pr-1">
-                <!-- 待審批項目動態載入 -->
+                <!-- 審批佇列動態載入 -->
             </div>
         </div>
     </div>
 
-    <!-- 8. PWA 安裝導引底部框 -->
+    <!-- PWA 安裝提示底部 Toast -->
     <div id="pwa-toast" class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-white border border-gray-300 p-3.5 rounded-2xl shadow-xl flex items-center justify-between text-xs z-30">
         <div class="flex items-center space-x-3">
             <div class="w-8 h-8 bg-amber-400 text-slate-900 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0">
                 <i class="fa-solid fa-mobile-screen"></i>
             </div>
             <div>
-                <span class="font-bold text-gray-900 block">新增至手機主畫面</span>
+                <span class="font-bold text-gray-900 block">安裝為 App 獲得最佳體驗</span>
                 <span id="pwa-instructions" class="text-gray-500">點擊瀏覽器「分享」並選擇「加入主畫面」</span>
             </div>
         </div>
@@ -153,45 +182,43 @@
         </button>
     </div>
 
-    <!-- 核心邏輯 -->
+    <!-- 核心 JS 邏輯 -->
     <script>
-        // 初始資料庫
-        let database = JSON.parse(localStorage.getItem('appDatabase')) || [
+        // ====== 1. ISO 7010 核心資料庫 (LocalStorage 持久化) ======
+        const defaultDatabase = [
             {
-                id: "W-Electric-L4",
+                id: "W-ElectricDanger-L4",
                 category: "W",
                 categoryName: "警告標誌",
                 name: "感電注意 (Electricity Danger)",
                 level: 4,
                 iconClass: "fa-bolt",
-                details: {
-                    frequency: "高 (高壓設備區域)",
-                    riskLevel: "極高 (等級 4)",
-                    elimination: "高壓檢修作業實施斷電",
-                    substitution: "升級低壓防爆電路控制",
-                    engineering: "加裝絕緣保護罩與漏電斷路器",
-                    administrative: "設置警示標示與作業簽核",
-                    ppe: "絕緣手套、絕緣鞋、防電弧面罩"
-                },
-                customSubmissions: [] // 用於存放審批通過的新增提交紀錄
+                fields: {
+                    frequency: ["高 (高壓設備區域)"],
+                    elimination: ["高壓檢修作業實施斷電"],
+                    substitution: ["升級低壓防爆電路控制"],
+                    engineering: ["加裝絕緣保護罩與漏電斷路器"],
+                    administrative: ["設置警示標示與作業簽核"],
+                    ppe: ["絕緣手套、絕緣鞋、防電弧面罩"],
+                    riskLevel: ["極高 (等級 4)"]
+                }
             },
             {
-                id: "W-Slip-L2",
+                id: "W-Slippery-L2",
                 category: "W",
                 categoryName: "警告標誌",
                 name: "滑倒危險 (Slippery Surface)",
                 level: 2,
                 iconClass: "fa-person-falling-burst",
-                details: {
-                    frequency: "中 (地面積水區)",
-                    riskLevel: "中等 (等級 2)",
-                    elimination: "定期清理地面油污",
-                    substitution: "鋪設防滑吸油墊",
-                    engineering: "加設止滑條與排水溝槽",
-                    administrative: "濕滑期間設置警告立牌",
-                    ppe: "防滑安全鞋"
-                },
-                customSubmissions: []
+                fields: {
+                    frequency: ["中 (地面積水區)"],
+                    elimination: ["定期清理地面油污"],
+                    substitution: ["鋪設防滑吸油墊"],
+                    engineering: ["加設止滑條與排水溝槽"],
+                    administrative: ["濕滑期間設置警告立牌"],
+                    ppe: ["防滑安全鞋"],
+                    riskLevel: ["中等 (等級 2)"]
+                }
             },
             {
                 id: "P-NoSmoking",
@@ -200,62 +227,78 @@
                 name: "禁止吸菸 (No Smoking)",
                 level: null,
                 iconClass: "fa-ban-smoking",
-                details: null,
-                customSubmissions: []
+                fields: null
             },
             {
-                id: "M-EyeProtection",
+                id: "M-WearEyeProtection",
                 category: "M",
                 categoryName: "強制標誌",
                 name: "佩戴護目鏡 (Wear Eye Protection)",
                 level: null,
                 iconClass: "fa-glasses",
-                details: null,
-                customSubmissions: []
+                fields: null
+            },
+            {
+                id: "E-FirstAid",
+                category: "E",
+                categoryName: "救護標誌",
+                name: "急救站 (First Aid Station)",
+                level: null,
+                iconClass: "fa-kit-medical",
+                fields: null
+            },
+            {
+                id: "F-Extinguisher",
+                category: "F",
+                categoryName: "消防標誌",
+                name: "滅火器 (Fire Extinguisher)",
+                level: null,
+                iconClass: "fa-fire-extinguisher",
+                fields: null
             }
         ];
 
-        let approvalQueue = JSON.parse(localStorage.getItem('approvalQueue')) || [];
+        let database = JSON.parse(localStorage.getItem('iso7010_db')) || defaultDatabase;
+        let approvalQueue = JSON.parse(localStorage.getItem('iso7010_queue')) || [];
 
+        function saveDB() {
+            localStorage.setItem('iso7010_db', JSON.stringify(database));
+        }
+        function saveQueue() {
+            localStorage.setItem('iso7010_queue', JSON.stringify(approvalQueue));
+        }
+
+        // 初始化
         window.addEventListener('DOMContentLoaded', () => {
-            renderSignDetail("W-Electric-L4");
-            setupPWAInstructions();
+            renderSignDetail("W-ElectricDanger-L4");
             initLongPressAdmin();
+            setupPWAInstructions();
         });
 
-        // ====== 左上角長按 3 秒進入後台機制 ======
+        // ====== 2. 主標題長按 3 秒進入後台 ======
         function initLongPressAdmin() {
             let pressTimer = null;
-            const triggerEl = document.getElementById('admin-trigger');
-            const feedbackEl = document.getElementById('press-feedback');
+            const titleEl = document.getElementById('main-title');
 
-            function startPress(e) {
-                if (feedbackEl) feedbackEl.classList.remove('hidden');
+            function startPress() {
                 pressTimer = setTimeout(() => {
-                    cancelPress();
                     openAdminModal();
                 }, 3000);
             }
 
             function cancelPress() {
-                if (pressTimer) {
-                    clearTimeout(pressTimer);
-                    pressTimer = null;
-                }
-                if (feedbackEl) feedbackEl.classList.add('hidden');
+                if (pressTimer) clearTimeout(pressTimer);
             }
 
-            if (triggerEl) {
-                triggerEl.addEventListener('touchstart', startPress, { passive: true });
-                triggerEl.addEventListener('touchend', cancelPress);
-                triggerEl.addEventListener('touchcancel', cancelPress);
-
-                triggerEl.addEventListener('mousedown', startPress);
-                triggerEl.addEventListener('mouseup', cancelPress);
-                triggerEl.addEventListener('mouseleave', cancelPress);
-            }
+            titleEl.addEventListener('touchstart', startPress, { passive: true });
+            titleEl.addEventListener('touchend', cancelPress);
+            titleEl.addEventListener('touchcancel', cancelPress);
+            titleEl.addEventListener('mousedown', startPress);
+            titleEl.addEventListener('mouseup', cancelPress);
+            titleEl.addEventListener('mouseleave', cancelPress);
         }
 
+        // ====== 3. 畫面渲染：單一標誌詳情 ======
         function renderSignDetail(id) {
             const item = database.find(x => x.id === id);
             const container = document.getElementById('app-content');
@@ -263,93 +306,81 @@
             if (!item) {
                 container.innerHTML = `
                     <div class="bg-white p-8 rounded-2xl text-center border border-gray-200 shadow-sm">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-500 text-4xl mb-3"></i>
-                        <h3 class="font-bold text-gray-800">找不到該標誌</h3>
-                        <p class="text-xs text-gray-500 mt-1">流水號: ${id}</p>
-                        <button onclick="showDatabaseView()" class="mt-4 bg-amber-400 px-4 py-2 rounded-xl text-xs font-bold">回到完整資料庫</button>
+                        <i class="fa-solid fa-circle-exclamation text-amber-500 text-4xl mb-3"></i>
+                        <h3 class="font-bold text-gray-800">未找到相符標誌</h3>
+                        <p class="text-xs text-gray-500 mt-1">查詢流水號: ${id}</p>
+                        <button onclick="showDatabaseView()" class="mt-4 bg-amber-400 px-4 py-2 rounded-xl text-xs font-bold">檢視完整資料庫</button>
                     </div>`;
                 return;
             }
 
-            let isWarning = item.category === 'W';
-            let shapeHtml = '';
-
-            if (isWarning) {
-                shapeHtml = `
+            // ISO 標誌視覺繪製
+            let visualHtml = '';
+            if (item.category === 'W') {
+                // 三角形標誌，等級呈現於三角形下方
+                visualHtml = `
                     <div class="flex flex-col items-center">
-                        <div class="w-20 h-18 bg-amber-400 iso-triangle flex items-center justify-center shadow-sm">
-                            <i class="fa-solid ${item.iconClass} text-slate-900 text-2xl mt-3"></i>
+                        <div class="iso-triangle-container">
+                            <i class="fa-solid ${item.iconClass} iso-triangle-icon"></i>
                         </div>
-                        <span class="text-xs font-black text-amber-900 bg-amber-300 px-3 py-0.5 rounded-full mt-1.5 border border-amber-400">
-                            LV. ${item.level}
+                        <span class="text-xs font-black text-amber-900 bg-amber-300 px-3 py-0.5 rounded-full mt-2 border border-amber-400 shadow-sm">
+                            等級 ${item.level}
                         </span>
                     </div>`;
             } else {
-                let bg = item.category === 'P' ? 'bg-red-600' : 'bg-blue-600';
-                shapeHtml = `
+                let bgClass = item.category === 'P' ? 'bg-red-600' : (item.category === 'M' ? 'bg-blue-600' : 'bg-emerald-600');
+                visualHtml = `
                     <div class="flex flex-col items-center">
-                        <div class="w-16 h-16 ${bg} iso-circle flex items-center justify-center text-white text-2xl shadow-sm">
+                        <div class="w-18 h-18 ${bgClass} iso-circle flex items-center justify-center text-white text-3xl shadow-sm">
                             <i class="fa-solid ${item.iconClass}"></i>
                         </div>
                     </div>`;
             }
 
-            let detailsHtml = '';
-            if (isWarning && item.details) {
-                const keys = [
-                    { k: 'frequency', name: '1. 發生頻率' },
-                    { k: 'riskLevel', name: '2. 風險等級', isRed: true },
-                    { k: 'elimination', name: '3. 消除' },
-                    { k: 'substitution', name: '4. 取代' },
-                    { k: 'engineering', name: '5. 工程管制' },
-                    { k: 'administrative', name: '6. 行政管制' }
+            // 子目錄六大資訊 + 風險等級 (可雙擊提交)
+            let fieldsHtml = '';
+            if (item.fields) {
+                const mapKeys = [
+                    { key: 'frequency', label: '1. 發生頻率' },
+                    { key: 'elimination', label: '2. 消除' },
+                    { key: 'substitution', label: '3. 取代' },
+                    { key: 'engineering', label: '4. 工程管制' },
+                    { key: 'administrative', label: '5. 行政管制' },
+                    { key: 'ppe', label: '6. 個人防護用具' },
+                    { key: 'riskLevel', label: '7. 風險等級', isRed: true }
                 ];
 
-                let gridItems = keys.map(f => `
-                    <div class="p-2.5 ${f.isRed ? 'bg-red-50 border-red-200 text-red-700' : 'bg-gray-50 border-gray-200 text-gray-800'} rounded-lg border">
-                        <div class="text-[10px] text-gray-400">${f.name}</div>
-                        <div class="font-bold mt-0.5 text-xs">${item.details[f.k]}</div>
-                    </div>`).join('');
-
-                // 顯示使用者提交的新增紀錄列表
-                let customSubmissionsHtml = '';
-                if (item.customSubmissions && item.customSubmissions.length > 0) {
-                    let subItems = item.customSubmissions.map(sub => `
-                        <div class="p-2.5 bg-amber-50/60 border border-amber-200 rounded-lg text-xs space-y-1">
-                            <div class="flex justify-between text-[10px] text-amber-800 font-bold">
-                                <span>📌 ${sub.title}</span>
-                                <span class="text-gray-400 font-normal">${sub.time}</span>
-                            </div>
-                            <div class="text-gray-800">${sub.content}</div>
+                let cardsHtml = mapKeys.map(info => {
+                    const list = item.fields[info.key] || [];
+                    const itemsRender = list.map((text, idx) => `
+                        <div onclick="toggleExpand(this)" class="cursor-pointer text-xs ${idx === 0 ? 'font-bold text-gray-800' : 'text-gray-600 border-t pt-1 mt-1 border-gray-100'} truncate-text" title="點擊展開/收合">
+                            ${text}
                         </div>`).join('');
 
-                    customSubmissionsHtml = `
-                        <div class="space-y-2 pt-2 border-t border-gray-100">
-                            <h5 class="text-xs font-bold text-gray-700 flex items-center gap-1">
-                                <i class="fa-solid fa-folder-plus text-emerald-600"></i> 已通過審批之新增記錄 (${item.customSubmissions.length})
-                            </h5>
-                            ${subItems}
+                    return `
+                        <div ondblclick="triggerDoubleClickSubmit('${item.id}', '${info.key}', '${info.label}')" 
+                             class="p-3 ${info.isRed ? 'bg-red-50/70 border-red-200' : 'bg-gray-50 border-gray-200'} border rounded-xl relative hover:border-amber-400 transition cursor-pointer">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[10px] font-bold ${info.isRed ? 'text-red-700' : 'text-gray-400'}">${info.label}</span>
+                                <span class="text-[9px] text-gray-300">💡 雙擊提交</span>
+                            </div>
+                            <div class="space-y-1">
+                                ${itemsRender || '<span class="text-xs text-gray-300 italic">暫無資料</span>'}
+                            </div>
                         </div>`;
-                }
+                }).join('');
 
-                detailsHtml = `
+                fieldsHtml = `
                     <div class="space-y-3 pt-2">
                         <div class="flex justify-between items-center">
                             <h4 class="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-clipboard-list text-amber-500"></i> 風險與控制措施
+                                <i class="fa-solid fa-list-check text-amber-500"></i> 控制措施與風險矩陣
                             </h4>
-                            <button onclick="triggerNewSubmission('${item.id}')" class="text-[11px] font-bold bg-amber-400 text-slate-900 px-2.5 py-1 rounded-lg hover:bg-amber-500 transition shadow-sm flex items-center gap-1">
-                                <i class="fa-solid fa-plus text-[10px]"></i> 提交新資料
-                            </button>
+                            <span class="text-[10px] text-gray-400">雙擊框格可提交新資訊</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            ${gridItems}
+                        <div class="grid grid-cols-1 gap-2.5">
+                            ${cardsHtml}
                         </div>
-                        <div class="p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs">
-                            <div class="text-[10px] text-gray-400">7. 個人防護用具 (PPE)</div>
-                            <div class="font-bold text-gray-800 mt-0.5 text-xs">${item.details.ppe}</div>
-                        </div>
-                        ${customSubmissionsHtml}
                     </div>`;
             }
 
@@ -361,40 +392,47 @@
                             <h3 class="text-base font-bold text-gray-900 mt-1">${item.name}</h3>
                         </div>
                         <span class="text-[11px] font-mono font-bold bg-gray-100 px-2 py-1 rounded text-gray-600 border border-gray-200">
-                            ID: ${item.id}
+                            ${item.id}
                         </span>
                     </div>
 
-                    <div class="flex items-center justify-around py-3 bg-gray-50 rounded-xl border border-gray-100">
-                        ${shapeHtml}
+                    <div class="flex items-center justify-around py-4 bg-gray-50/80 rounded-2xl border border-gray-100">
+                        ${visualHtml}
                         <div class="flex flex-col items-center">
-                            <div id="qrcode-container" class="p-2 bg-white rounded-lg border border-gray-200 shadow-sm"></div>
+                            <div id="qrcode-box" class="p-2 bg-white rounded-xl border border-gray-200 shadow-sm"></div>
                             <span class="text-[10px] text-gray-400 mt-1">專屬 QR-Code</span>
                         </div>
                     </div>
 
-                    ${detailsHtml}
+                    ${fieldsHtml}
                 </div>`;
 
+            // 動態生成 QR Code
             setTimeout(() => {
-                const qrContainer = document.getElementById("qrcode-container");
-                if (qrContainer) {
-                    qrContainer.innerHTML = "";
-                    new QRCode(qrContainer, {
+                const box = document.getElementById("qrcode-box");
+                if (box) {
+                    box.innerHTML = "";
+                    new QRCode(box, {
                         text: item.id,
-                        width: 64,
-                        height: 64
+                        width: 70,
+                        height: 70
                     });
                 }
             }, 50);
         }
 
+        // 文字過長展開/折疊
+        function toggleExpand(el) {
+            el.classList.toggle('truncate-text');
+        }
+
+        // ====== 4. 完整資料庫檢視 (📦) ======
         function showDatabaseView() {
             const container = document.getElementById('app-content');
             let cards = database.map(item => `
-                <div onclick="renderSignDetail('${item.id}')" class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between active:scale-[0.98] transition cursor-pointer">
+                <div onclick="renderSignDetail('${item.id}')" class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between active:scale-[0.98] transition cursor-pointer">
                     <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 ${item.category === 'W' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'} rounded-lg flex items-center justify-center text-lg font-bold">
+                        <div class="w-10 h-10 ${item.category === 'W' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'} rounded-xl flex items-center justify-center text-lg font-bold">
                             <i class="fa-solid ${item.iconClass}"></i>
                         </div>
                         <div>
@@ -407,41 +445,37 @@
 
             container.innerHTML = `
                 <div class="space-y-3">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-gray-800 text-sm">完整 ISO 7010 安全標誌庫</h3>
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-gray-800 text-sm">完整 ISO 7010 標誌資料庫</h3>
                         <span class="text-xs text-gray-400">共 ${database.length} 筆</span>
                     </div>
                     ${cards}
                 </div>`;
         }
 
-        // 使用者觸發「新增提交資料」
-        function triggerNewSubmission(signId) {
-            const title = prompt("請輸入新增資料的項目標題 (例如：補充工程管制/巡檢備註)：");
-            if (!title) return;
+        // ====== 5. 雙擊提交機制 (Double Click) ======
+        function triggerDoubleClickSubmit(signId, fieldKey, fieldLabel) {
+            const userInput = prompt(`[雙擊提交 - 進入待審批流程]\n路徑：${signId} ➔ ${fieldLabel}\n\n請輸入欲新增的內容：`);
+            if (userInput && userInput.trim() !== '') {
+                const record = {
+                    id: Date.now(),
+                    signId: signId,
+                    fieldKey: fieldKey,
+                    fieldLabel: fieldLabel,
+                    content: userInput.trim(),
+                    time: new Date().toLocaleString('zh-TW')
+                };
 
-            const content = prompt("請輸入詳細內容：");
-            if (!content) return;
+                approvalQueue.push(record);
+                saveQueue();
 
-            const record = {
-                id: Date.now(),
-                signId: signId,
-                title: title,
-                content: content,
-                time: new Date().toLocaleString('zh-TW')
-            };
-
-            approvalQueue.push(record);
-            localStorage.setItem('approvalQueue', JSON.stringify(approvalQueue));
-            alert(`提交成功！\n標題：${title}\n內容：${content}\n\n已送至後台【待審批狀態】，通過後將作為新項目新增進資料中。`);
+                alert(`提交成功！\n資料已進入「待審批狀態」，經後台審核通過後，會自動在該路徑下新增顯示。`);
+            }
         }
 
-        function openSearchModal() {
-            document.getElementById('search-modal').classList.remove('hidden');
-        }
-        function closeSearchModal() {
-            document.getElementById('search-modal').classList.add('hidden');
-        }
+        // ====== 6. T 文字搜尋 Modal ======
+        function openSearchModal() { document.getElementById('search-modal').classList.remove('hidden'); }
+        function closeSearchModal() { document.getElementById('search-modal').classList.add('hidden'); }
         function performSearch() {
             const query = document.getElementById('search-input').value.trim();
             if (query) {
@@ -450,26 +484,24 @@
             }
         }
 
-        // ====== 相機掃描器與拒絕權限處理 ======
+        // ====== 7. 📷 相機掃碼 Modal與拒絕權限處理 ======
         let html5QrCode = null;
         function openScannerModal() {
             document.getElementById('scanner-modal').classList.remove('hidden');
             html5QrCode = new Html5Qrcode("reader");
-            
+
             html5QrCode.start(
-                { facingMode: "environment" }, 
+                { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 200, height: 200 } },
                 (decodedText) => {
                     closeScannerModal();
                     renderSignDetail(decodedText);
                 },
-                (errorMessage) => {
-                    // 掃描過程中的幀解析失敗（可忽略）
-                }
+                (errorMessage) => { /* 忽略中間幀解析失敗 */ }
             ).catch((err) => {
-                // 使用者拒絕開啟權限或無法取得相機
-                alert("無法開啟相機：未取得相機存取權限或設備不支援相機。");
-                closeScannerModal(); // 自動關閉掃描視窗，回到原始畫面
+                // 使用者不允許開啟相機時，跳提示並直接退回最原始畫面
+                alert("未取得相機存取權限，已退回初始頁面。");
+                closeScannerModal();
             });
         }
 
@@ -488,26 +520,27 @@
             }
         }
 
+        // ====== 8. 後台審批流程 (Admin Modal) ======
         function openAdminModal() {
             const queueContainer = document.getElementById('admin-queue');
             if (approvalQueue.length === 0) {
-                queueContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">目前沒有待審批的新增資料。</p>`;
+                queueContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-8">目前無任何待審批項目。</p>`;
             } else {
                 queueContainer.innerHTML = approvalQueue.map(item => `
                     <div class="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 text-xs">
                         <div class="flex justify-between font-bold text-gray-700">
-                            <span>對應標誌: ${item.signId}</span>
+                            <span>路徑: ${item.signId}</span>
                             <span class="text-[10px] text-gray-400">${item.time}</span>
                         </div>
                         <div class="text-amber-800 font-bold bg-amber-50 p-1.5 rounded border border-amber-200">
-                            新增項目：${item.title}
+                            矩陣位置：${item.fieldLabel}
                         </div>
                         <div class="text-gray-800 bg-white p-2 rounded border border-gray-100">
-                            詳細內容：${item.content}
+                            輸入內容：${item.content}
                         </div>
                         <div class="flex justify-end space-x-2 pt-1">
                             <button onclick="rejectApproval(${item.id})" class="px-3 py-1 bg-gray-200 text-gray-700 rounded font-bold">駁回</button>
-                            <button onclick="approveApproval(${item.id})" class="px-3 py-1 bg-emerald-600 text-white rounded font-bold">同意新增</button>
+                            <button onclick="approveApproval(${item.id})" class="px-3 py-1 bg-emerald-600 text-white rounded font-bold">同意通過</button>
                         </div>
                     </div>`).join('');
             }
@@ -518,36 +551,29 @@
             document.getElementById('admin-modal').classList.add('hidden');
         }
 
-        // 審批通過：新增資料進 database 陣列
         function approveApproval(id) {
             const item = approvalQueue.find(x => x.id === id);
             if (item) {
-                const targetSign = database.find(x => x.id === item.signId);
-                if (targetSign) {
-                    if (!targetSign.customSubmissions) targetSign.customSubmissions = [];
-                    targetSign.customSubmissions.push({
-                        title: item.title,
-                        content: item.content,
-                        time: item.time
-                    });
-
-                    // 存回 LocalStorage
-                    localStorage.setItem('appDatabase', JSON.stringify(database));
+                const target = database.find(x => x.id === item.signId);
+                if (target && target.fields) {
+                    if (!target.fields[item.fieldKey]) target.fields[item.fieldKey] = [];
+                    // 新增核准的訊息進矩陣
+                    target.fields[item.fieldKey].push(item.content);
+                    saveDB();
                 }
 
-                // 移除佇列
                 approvalQueue = approvalQueue.filter(x => x.id !== id);
-                localStorage.setItem('approvalQueue', JSON.stringify(approvalQueue));
+                saveQueue();
 
                 openAdminModal();
                 renderSignDetail(item.signId);
-                alert("已同意新增！該筆新資料已加入清單中。");
+                alert("審核通過！該訊息已順利新增至對應矩陣中。");
             }
         }
 
         function rejectApproval(id) {
             approvalQueue = approvalQueue.filter(x => x.id !== id);
-            localStorage.setItem('approvalQueue', JSON.stringify(approvalQueue));
+            saveQueue();
             openAdminModal();
         }
 
@@ -555,9 +581,9 @@
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             const el = document.getElementById('pwa-instructions');
             if (isIOS) {
-                el.innerHTML = '點擊下方 <i class="fa-solid fa-share-from-square text-amber-500"></i> 分享按鈕，選擇<b>「加入主畫面」</b>';
+                el.innerHTML = '點擊下方 <i class="fa-solid fa-share-from-square text-amber-500"></i> 分享，選擇<b>「加入主畫面」</b>';
             } else {
-                el.innerHTML = '點擊右上角選單，選擇<b>「安裝應用程式」</b>或<b>「新增至主畫面」</b>';
+                el.innerHTML = '點擊瀏覽器選單，選擇<b>「安裝應用程式」</b>';
             }
             if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
                 document.getElementById('pwa-toast').style.display = 'none';
