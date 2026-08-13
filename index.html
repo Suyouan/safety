@@ -2,8 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <!-- Allow pinch-zoom for accessibility -->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>安全文化與安全意識</title>
 
     <!-- Tailwind CSS CDN -->
@@ -14,7 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
 
-    <!-- PWA 標籤設定 (讓手機識別為 APP) -->
+    <!-- PWA 標籤設定 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -51,8 +50,10 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased pb-24 min-h-screen relative select-none">
 
-    <!-- 1. 左上角 1/9 區隱藏觸發後台 (連擊 3 下) -->
-    <div onclick="handleAdminTrigger()" aria-hidden="true" tabindex="-1" class="fixed top-0 left-0 w-1/3 h-1/3 z-50 cursor-pointer opacity-0" title="隱藏區域：連點3下進入後台審批"></div>
+    <!-- 1. 左上角 1/9 區隱藏觸發後台 (長按 3 秒) -->
+    <div id="admin-trigger" class="fixed top-0 left-0 w-1/3 h-1/3 z-50 cursor-pointer select-none flex items-start justify-start p-2" title="隱藏區域：長按 3 秒進入後台審批">
+        <span id="press-feedback" class="text-[10px] bg-slate-900/80 text-white px-2 py-1 rounded hidden">長按 3 秒中...</span>
+    </div>
 
     <!-- 2. 頂部導覽列 -->
     <header class="sticky top-0 bg-white/90 backdrop-blur-md border-b border-gray-200 z-40 px-4 py-3 shadow-sm">
@@ -92,9 +93,9 @@
         </div>
     </section>
 
-    <!-- 4. 主要內容區域 (標誌詳情頁 / 全覽資料庫) -->
+    <!-- 4. 主要內容區域 -->
     <main id="app-content" class="max-w-md mx-auto px-4 mt-6">
-        <!-- 內容會由 JavaScript 動態渲染 -->
+        <!-- 內容由 JS 動態渲染 -->
     </main>
 
     <!-- 5. 搜尋 Modal 彈窗 -->
@@ -116,17 +117,17 @@
                 <h3 class="font-bold text-gray-900 text-sm">對準標誌上的 QR-Code</h3>
                 <button onclick="closeScannerModal()" class="text-gray-400 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div id="reader" class="w-full rounded-xl overflow-hidden bg-black"></div>
+            <div id="reader" class="w-full rounded-xl overflow-hidden bg-black min-h-[200px] flex items-center justify-center"></div>
         </div>
     </div>
 
-    <!-- 7. 後台審批流程 Modal (左上角連擊 3 下觸發) -->
+    <!-- 7. 後台審批流程 Modal -->
     <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center px-4">
         <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-2xl space-y-4 max-h-[80vh] flex flex-col">
             <div class="flex justify-between items-center border-b pb-3">
                 <div class="flex items-center space-x-2">
                     <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold">後台</span>
-                    <h3 class="font-bold text-gray-900 text-base">待審批流程清單</h3>
+                    <h3 class="font-bold text-gray-900 text-base">待審批「新增資料」清單</h3>
                 </div>
                 <button onclick="closeAdminModal()" class="text-gray-400 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
@@ -152,21 +153,10 @@
         </button>
     </div>
 
-    <!-- 核心應用邏輯 Script -->
+    <!-- 核心邏輯 -->
     <script>
-        // Utility: Escape text to prevent HTML injection (XSS)
-        function escapeHTML (str) {
-            if (str === null || str === undefined) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        // ISO 7010:2019 資料庫預設資料
-        const database = [
+        // 初始資料庫
+        let database = JSON.parse(localStorage.getItem('appDatabase')) || [
             {
                 id: "W-Electric-L4",
                 category: "W",
@@ -182,7 +172,8 @@
                     engineering: "加裝絕緣保護罩與漏電斷路器",
                     administrative: "設置警示標示與作業簽核",
                     ppe: "絕緣手套、絕緣鞋、防電弧面罩"
-                }
+                },
+                customSubmissions: [] // 用於存放審批通過的新增提交紀錄
             },
             {
                 id: "W-Slip-L2",
@@ -199,7 +190,8 @@
                     engineering: "加設止滑條與排水溝槽",
                     administrative: "濕滑期間設置警告立牌",
                     ppe: "防滑安全鞋"
-                }
+                },
+                customSubmissions: []
             },
             {
                 id: "P-NoSmoking",
@@ -208,7 +200,8 @@
                 name: "禁止吸菸 (No Smoking)",
                 level: null,
                 iconClass: "fa-ban-smoking",
-                details: null
+                details: null,
+                customSubmissions: []
             },
             {
                 id: "M-EyeProtection",
@@ -217,29 +210,52 @@
                 name: "佩戴護目鏡 (Wear Eye Protection)",
                 level: null,
                 iconClass: "fa-glasses",
-                details: null
+                details: null,
+                customSubmissions: []
             }
         ];
 
-        // 待審批資料庫 (儲存於 LocalStorage) - safe parse
-        let approvalQueue = [];
-        try {
-            const raw = localStorage.getItem('approvalQueue');
-            const parsed = raw ? JSON.parse(raw) : null;
-            if (Array.isArray(parsed)) approvalQueue = parsed;
-        } catch (e) {
-            console.warn('Could not parse approvalQueue from localStorage, resetting.', e);
-            approvalQueue = [];
-            localStorage.removeItem('approvalQueue');
-        }
+        let approvalQueue = JSON.parse(localStorage.getItem('approvalQueue')) || [];
 
-        // 初始化
         window.addEventListener('DOMContentLoaded', () => {
             renderSignDetail("W-Electric-L4");
             setupPWAInstructions();
+            initLongPressAdmin();
         });
 
-        // 渲染指定標誌的詳細頁面 (與文字搜尋/相機掃碼顯示一致)
+        // ====== 左上角長按 3 秒進入後台機制 ======
+        function initLongPressAdmin() {
+            let pressTimer = null;
+            const triggerEl = document.getElementById('admin-trigger');
+            const feedbackEl = document.getElementById('press-feedback');
+
+            function startPress(e) {
+                if (feedbackEl) feedbackEl.classList.remove('hidden');
+                pressTimer = setTimeout(() => {
+                    cancelPress();
+                    openAdminModal();
+                }, 3000);
+            }
+
+            function cancelPress() {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+                if (feedbackEl) feedbackEl.classList.add('hidden');
+            }
+
+            if (triggerEl) {
+                triggerEl.addEventListener('touchstart', startPress, { passive: true });
+                triggerEl.addEventListener('touchend', cancelPress);
+                triggerEl.addEventListener('touchcancel', cancelPress);
+
+                triggerEl.addEventListener('mousedown', startPress);
+                triggerEl.addEventListener('mouseup', cancelPress);
+                triggerEl.addEventListener('mouseleave', cancelPress);
+            }
+        }
+
         function renderSignDetail(id) {
             const item = database.find(x => x.id === id);
             const container = document.getElementById('app-content');
@@ -249,7 +265,7 @@
                     <div class="bg-white p-8 rounded-2xl text-center border border-gray-200 shadow-sm">
                         <i class="fa-solid fa-triangle-exclamation text-amber-500 text-4xl mb-3"></i>
                         <h3 class="font-bold text-gray-800">找不到該標誌</h3>
-                        <p class="text-xs text-gray-500 mt-1">流水號: ${escapeHTML(id)}</p>
+                        <p class="text-xs text-gray-500 mt-1">流水號: ${id}</p>
                         <button onclick="showDatabaseView()" class="mt-4 bg-amber-400 px-4 py-2 rounded-xl text-xs font-bold">回到完整資料庫</button>
                     </div>`;
                 return;
@@ -262,10 +278,10 @@
                 shapeHtml = `
                     <div class="flex flex-col items-center">
                         <div class="w-20 h-18 bg-amber-400 iso-triangle flex items-center justify-center shadow-sm">
-                            <i class="fa-solid ${escapeHTML(item.iconClass)} text-slate-900 text-2xl mt-3"></i>
+                            <i class="fa-solid ${item.iconClass} text-slate-900 text-2xl mt-3"></i>
                         </div>
                         <span class="text-xs font-black text-amber-900 bg-amber-300 px-3 py-0.5 rounded-full mt-1.5 border border-amber-400">
-                            LV. ${escapeHTML(item.level === null ? '' : String(item.level))}
+                            LV. ${item.level}
                         </span>
                     </div>`;
             } else {
@@ -273,7 +289,7 @@
                 shapeHtml = `
                     <div class="flex flex-col items-center">
                         <div class="w-16 h-16 ${bg} iso-circle flex items-center justify-center text-white text-2xl shadow-sm">
-                            <i class="fa-solid ${escapeHTML(item.iconClass)}"></i>
+                            <i class="fa-solid ${item.iconClass}"></i>
                         </div>
                     </div>`;
             }
@@ -290,28 +306,50 @@
                 ];
 
                 let gridItems = keys.map(f => `
-                    <div ondblclick="triggerFieldEdit('${escapeHTML(item.id)}', '${escapeHTML(f.name)}', '${escapeHTML(item.details[f.k])}')" 
-                         class="p-2.5 ${f.isRed ? 'bg-red-50 hover:bg-red-100 border-red-200 text-red-700' : 'bg-gray-50 hover:bg-amber-50 border-gray-200 text-gray-800'} rounded-lg border cursor-pointer transition">
-                        <div class="text-[10px] text-gray-400">${escapeHTML(f.name)}</div>
-                        <div class="font-bold mt-0.5 text-xs">${escapeHTML(item.details[f.k])}</div>
+                    <div class="p-2.5 ${f.isRed ? 'bg-red-50 border-red-200 text-red-700' : 'bg-gray-50 border-gray-200 text-gray-800'} rounded-lg border">
+                        <div class="text-[10px] text-gray-400">${f.name}</div>
+                        <div class="font-bold mt-0.5 text-xs">${item.details[f.k]}</div>
                     </div>`).join('');
+
+                // 顯示使用者提交的新增紀錄列表
+                let customSubmissionsHtml = '';
+                if (item.customSubmissions && item.customSubmissions.length > 0) {
+                    let subItems = item.customSubmissions.map(sub => `
+                        <div class="p-2.5 bg-amber-50/60 border border-amber-200 rounded-lg text-xs space-y-1">
+                            <div class="flex justify-between text-[10px] text-amber-800 font-bold">
+                                <span>📌 ${sub.title}</span>
+                                <span class="text-gray-400 font-normal">${sub.time}</span>
+                            </div>
+                            <div class="text-gray-800">${sub.content}</div>
+                        </div>`).join('');
+
+                    customSubmissionsHtml = `
+                        <div class="space-y-2 pt-2 border-t border-gray-100">
+                            <h5 class="text-xs font-bold text-gray-700 flex items-center gap-1">
+                                <i class="fa-solid fa-folder-plus text-emerald-600"></i> 已通過審批之新增記錄 (${item.customSubmissions.length})
+                            </h5>
+                            ${subItems}
+                        </div>`;
+                }
 
                 detailsHtml = `
                     <div class="space-y-3 pt-2">
                         <div class="flex justify-between items-center">
                             <h4 class="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-clipboard-list text-amber-500"></i> 風險與控制措施子目錄
+                                <i class="fa-solid fa-clipboard-list text-amber-500"></i> 風險與控制措施
                             </h4>
-                            <span class="text-[10px] text-gray-400">💡 雙擊框格編輯</span>
+                            <button onclick="triggerNewSubmission('${item.id}')" class="text-[11px] font-bold bg-amber-400 text-slate-900 px-2.5 py-1 rounded-lg hover:bg-amber-500 transition shadow-sm flex items-center gap-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i> 提交新資料
+                            </button>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             ${gridItems}
                         </div>
-                        <div ondblclick="triggerFieldEdit('${escapeHTML(item.id)}', '7. 個人防護用具 (PPE)', '${escapeHTML(item.details.ppe)}')" 
-                             class="p-2.5 bg-gray-50 hover:bg-amber-50 rounded-lg border border-gray-200 cursor-pointer transition text-xs">
-                            <div class="text-[10px] text-gray-400">7. 個   防護用具 (PPE)</div>
-                            <div class="font-bold text-gray-800 mt-0.5 text-xs">${escapeHTML(item.details.ppe)}</div>
+                        <div class="p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs">
+                            <div class="text-[10px] text-gray-400">7. 個人防護用具 (PPE)</div>
+                            <div class="font-bold text-gray-800 mt-0.5 text-xs">${item.details.ppe}</div>
                         </div>
+                        ${customSubmissionsHtml}
                     </div>`;
             }
 
@@ -319,11 +357,11 @@
                 <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
                     <div class="flex justify-between items-start border-b border-gray-100 pb-3">
                         <div>
-                            <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200">${escapeHTML(item.categoryName)}</span>
-                            <h3 class="text-base font-bold text-gray-900 mt-1">${escapeHTML(item.name)}</h3>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200">${item.categoryName}</span>
+                            <h3 class="text-base font-bold text-gray-900 mt-1">${item.name}</h3>
                         </div>
                         <span class="text-[11px] font-mono font-bold bg-gray-100 px-2 py-1 rounded text-gray-600 border border-gray-200">
-                            ID: ${escapeHTML(item.id)}
+                            ID: ${item.id}
                         </span>
                     </div>
 
@@ -338,7 +376,6 @@
                     ${detailsHtml}
                 </div>`;
 
-            // 即時動態生成專屬 QR Code
             setTimeout(() => {
                 const qrContainer = document.getElementById("qrcode-container");
                 if (qrContainer) {
@@ -352,18 +389,17 @@
             }, 50);
         }
 
-        // 展示全覽資料庫
         function showDatabaseView() {
             const container = document.getElementById('app-content');
             let cards = database.map(item => `
-                <div onclick="renderSignDetail('${escapeHTML(item.id)}')" class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between active:scale-[0.98] transition cursor-pointer">
+                <div onclick="renderSignDetail('${item.id}')" class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between active:scale-[0.98] transition cursor-pointer">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 ${item.category === 'W' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'} rounded-lg flex items-center justify-center text-lg font-bold">
-                            <i class="fa-solid ${escapeHTML(item.iconClass)}"></i>
+                            <i class="fa-solid ${item.iconClass}"></i>
                         </div>
                         <div>
-                            <h4 class="font-bold text-sm text-gray-900">${escapeHTML(item.name)}</h4>
-                            <span class="text-[10px] font-mono text-gray-400">${escapeHTML(item.id)}</span>
+                            <h4 class="font-bold text-sm text-gray-900">${item.name}</h4>
+                            <span class="text-[10px] font-mono text-gray-400">${item.id}</span>
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
@@ -379,32 +415,27 @@
                 </div>`;
         }
 
-        // 雙擊欄位進行編輯輸入 (進入待審批流程)
-        function triggerFieldEdit(signId, fieldName, currentValue) {
-            const newValue = prompt(`[待審批提交]\n請輸入新的「${fieldName}」內容：`, currentValue);
-            if (newValue !== null) {
-                const trimmed = String(newValue).trim();
-                if (trimmed.length === 0) return; // empty - do nothing
-                if (trimmed.length > 800) {
-                    alert('輸入文字過長，請限制在 800 字以內。');
-                    return;
-                }
-                if (trimmed !== currentValue) {
-                    const record = {
-                        id: Date.now(),
-                        signId: signId,
-                        field: fieldName,
-                        value: trimmed,
-                        time: new Date().toLocaleString('zh-TW')
-                    };
-                    approvalQueue.push(record);
-                    try { localStorage.setItem('approvalQueue', JSON.stringify(approvalQueue)); } catch(e){ console.warn('Could not save approvalQueue', e); }
-                    alert(`提交成功！\n欄位：${fieldName}\n內容：${trimmed}\n\n已傳送至後台【待審批狀態】，經審核通過後方會生效。`);
-                }
-            }
+        // 使用者觸發「新增提交資料」
+        function triggerNewSubmission(signId) {
+            const title = prompt("請輸入新增資料的項目標題 (例如：補充工程管制/巡檢備註)：");
+            if (!title) return;
+
+            const content = prompt("請輸入詳細內容：");
+            if (!content) return;
+
+            const record = {
+                id: Date.now(),
+                signId: signId,
+                title: title,
+                content: content,
+                time: new Date().toLocaleString('zh-TW')
+            };
+
+            approvalQueue.push(record);
+            localStorage.setItem('approvalQueue', JSON.stringify(approvalQueue));
+            alert(`提交成功！\n標題：${title}\n內容：${content}\n\n已送至後台【待審批狀態】，通過後將作為新項目新增進資料中。`);
         }
 
-        // 搜尋 Modal 邏輯
         function openSearchModal() {
             document.getElementById('search-modal').classList.remove('hidden');
         }
@@ -419,13 +450,12 @@
             }
         }
 
-        // 相機掃碼器 (html5-qrcode) - improved cleanup and error handling
+        // ====== 相機掃描器與拒絕權限處理 ======
         let html5QrCode = null;
         function openScannerModal() {
             document.getElementById('scanner-modal').classList.remove('hidden');
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("reader");
-            }
+            html5QrCode = new Html5Qrcode("reader");
+            
             html5QrCode.start(
                 { facingMode: "environment" }, 
                 { fps: 10, qrbox: { width: 200, height: 200 } },
@@ -433,109 +463,53 @@
                     closeScannerModal();
                     renderSignDetail(decodedText);
                 },
-                (errorMessage) => {}
-            ).catch(err => {
-                console.error('QR start failed:', err);
-                closeScannerModal();
-                alert('無法啟動相機，請檢查權限或裝置支援');
+                (errorMessage) => {
+                    // 掃描過程中的幀解析失敗（可忽略）
+                }
+            ).catch((err) => {
+                // 使用者拒絕開啟權限或無法取得相機
+                alert("無法開啟相機：未取得相機存取權限或設備不支援相機。");
+                closeScannerModal(); // 自動關閉掃描視窗，回到原始畫面
             });
         }
+
         function closeScannerModal() {
             if (html5QrCode) {
-                html5QrCode.stop()
-                    .then(() => {
-                        try { html5QrCode.clear(); } catch(e) { /* ignore */ }
-                    })
-                    .catch((stopErr) => {
-                        console.warn('Error stopping html5QrCode:', stopErr);
-                        try { html5QrCode.clear(); } catch(e) { /* ignore */ }
-                    })
-                    .finally(() => {
-                        html5QrCode = null;
-                        document.getElementById('scanner-modal').classList.add('hidden');
-                    });
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                    document.getElementById('scanner-modal').classList.add('hidden');
+                }).catch(() => {
+                    document.getElementById('scanner-modal').classList.add('hidden');
+                    html5QrCode = null;
+                });
             } else {
                 document.getElementById('scanner-modal').classList.add('hidden');
             }
         }
 
-        // 左上角 1/9 區連擊 3 下進入後台
-        let clickCount = 0;
-        let clickTimer = null;
-        function handleAdminTrigger() {
-            clickCount++;
-            clearTimeout(clickTimer);
-            if (clickCount === 3) {
-                openAdminModal();
-                clickCount = 0;
-            } else {
-                clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
-            }
-        }
-
-        // Open admin modal - render using DOM APIs to avoid HTML injection
         function openAdminModal() {
             const queueContainer = document.getElementById('admin-queue');
-            queueContainer.innerHTML = '';
             if (approvalQueue.length === 0) {
-                const p = document.createElement('p');
-                p.className = 'text-xs text-gray-400 text-center py-6';
-                p.textContent = '目前沒有待審批的提交資料。';
-                queueContainer.appendChild(p);
+                queueContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">目前沒有待審批的新增資料。</p>`;
             } else {
-                approvalQueue.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 text-xs';
-
-                    const header = document.createElement('div');
-                    header.className = 'flex justify-between font-bold text-gray-700';
-
-                    const pathSpan = document.createElement('span');
-                    pathSpan.textContent = `路徑: ${item.signId}`;
-
-                    const timeSpan = document.createElement('span');
-                    timeSpan.className = 'text-[10px] text-gray-400';
-                    timeSpan.textContent = item.time;
-
-                    header.appendChild(pathSpan);
-                    header.appendChild(timeSpan);
-
-                    const fieldDiv = document.createElement('div');
-                    fieldDiv.className = 'text-gray-600';
-                    // field name originates from UI; escape when inserting as HTML
-                    const bold = document.createElement('b');
-                    bold.className = 'text-gray-900';
-                    bold.textContent = item.field;
-                    fieldDiv.textContent = '欄位: ';
-                    fieldDiv.appendChild(bold);
-
-                    const contentDiv = document.createElement('div');
-                    contentDiv.className = 'text-gray-800 bg-white p-2 rounded border border-gray-100';
-                    contentDiv.textContent = item.value; // use textContent to prevent injection
-
-                    const controls = document.createElement('div');
-                    controls.className = 'flex justify-end space-x-2 pt-1';
-
-                    const btnReject = document.createElement('button');
-                    btnReject.className = 'px-3 py-1 bg-gray-200 text-gray-700 rounded font-bold';
-                    btnReject.textContent = '駁回';
-                    btnReject.addEventListener('click', () => rejectApproval(item.id));
-
-                    const btnApprove = document.createElement('button');
-                    btnApprove.className = 'px-3 py-1 bg-emerald-600 text-white rounded font-bold';
-                    btnApprove.textContent = '通過';
-                    btnApprove.addEventListener('click', () => approveApproval(item.id));
-
-                    controls.appendChild(btnReject);
-                    controls.appendChild(btnApprove);
-
-                    card.appendChild(header);
-                    card.appendChild(fieldDiv);
-                    card.appendChild(contentDiv);
-                    card.appendChild(controls);
-
-                    queueContainer.appendChild(card);
-                });
+                queueContainer.innerHTML = approvalQueue.map(item => `
+                    <div class="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 text-xs">
+                        <div class="flex justify-between font-bold text-gray-700">
+                            <span>對應標誌: ${item.signId}</span>
+                            <span class="text-[10px] text-gray-400">${item.time}</span>
+                        </div>
+                        <div class="text-amber-800 font-bold bg-amber-50 p-1.5 rounded border border-amber-200">
+                            新增項目：${item.title}
+                        </div>
+                        <div class="text-gray-800 bg-white p-2 rounded border border-gray-100">
+                            詳細內容：${item.content}
+                        </div>
+                        <div class="flex justify-end space-x-2 pt-1">
+                            <button onclick="rejectApproval(${item.id})" class="px-3 py-1 bg-gray-200 text-gray-700 rounded font-bold">駁回</button>
+                            <button onclick="approveApproval(${item.id})" class="px-3 py-1 bg-emerald-600 text-white rounded font-bold">同意新增</button>
+                        </div>
+                    </div>`).join('');
             }
             document.getElementById('admin-modal').classList.remove('hidden');
         }
@@ -544,36 +518,39 @@
             document.getElementById('admin-modal').classList.add('hidden');
         }
 
+        // 審批通過：新增資料進 database 陣列
         function approveApproval(id) {
             const item = approvalQueue.find(x => x.id === id);
             if (item) {
                 const targetSign = database.find(x => x.id === item.signId);
-                if (targetSign && targetSign.details) {
-                    // validate and write back safely (trim length)
-                    const safeVal = String(item.value).slice(0, 1000);
-                    if(item.field.includes("發生頻率")) targetSign.details.frequency = safeVal;
-                    if(item.field.includes("風險等級")) targetSign.details.riskLevel = safeVal;
-                    if(item.field.includes("消除")) targetSign.details.elimination = safeVal;
-                    if(item.field.includes("取代")) targetSign.details.substitution = safeVal;
-                    if(item.field.includes("工程管制")) targetSign.details.engineering = safeVal;
-                    if(item.field.includes("行政管制")) targetSign.details.administrative = safeVal;
-                    if(item.field.includes("個人防護")) targetSign.details.ppe = safeVal;
+                if (targetSign) {
+                    if (!targetSign.customSubmissions) targetSign.customSubmissions = [];
+                    targetSign.customSubmissions.push({
+                        title: item.title,
+                        content: item.content,
+                        time: item.time
+                    });
+
+                    // 存回 LocalStorage
+                    localStorage.setItem('appDatabase', JSON.stringify(database));
                 }
+
+                // 移除佇列
                 approvalQueue = approvalQueue.filter(x => x.id !== id);
-                try { localStorage.setItem('approvalQueue', JSON.stringify(approvalQueue)); } catch(e){ console.warn('Could not save approvalQueue', e); }
+                localStorage.setItem('approvalQueue', JSON.stringify(approvalQueue));
+
                 openAdminModal();
                 renderSignDetail(item.signId);
-                alert("審批已通過並更新資料！");
+                alert("已同意新增！該筆新資料已加入清單中。");
             }
         }
 
         function rejectApproval(id) {
             approvalQueue = approvalQueue.filter(x => x.id !== id);
-            try { localStorage.setItem('approvalQueue', JSON.stringify(approvalQueue)); } catch(e){ console.warn('Could not save approvalQueue', e); }
+            localStorage.setItem('approvalQueue', JSON.stringify(approvalQueue));
             openAdminModal();
         }
 
-        // PWA iOS/Android 操作指引判斷
         function setupPWAInstructions() {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             const el = document.getElementById('pwa-instructions');
@@ -586,8 +563,6 @@
                 document.getElementById('pwa-toast').style.display = 'none';
             }
         }
-
-        // Note: consider adding role="dialog" and focus-trap for better accessibility on the modals
     </script>
 </body>
 </html>
