@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ISO 7010 安全標誌與文化意識</title>
+    <title>ISO 7010 安全標誌庫</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +23,7 @@
     <!-- 動態生成 PWA Web App Manifest -->
     <script>
         const manifestData = {
-            "name": "ISO 7010 安全標誌與文化意識",
+            "name": "ISO 7010 安全標誌庫",
             "short_name": "安全標誌",
             "start_url": ".",
             "display": "standalone",
@@ -419,7 +419,7 @@
                     ${fieldsHtml}
                 </div>`;
 
-            // 動態生成專屬 QR Code
+            // 動態生成專屬 QR Code (解碼內容與流水編號完全一致)
             setTimeout(() => {
                 const box = document.getElementById("qrcode-box");
                 if (box) {
@@ -491,7 +491,7 @@
             }
         }
 
-        // ====== 6. 📦 完整資料庫檢視 ======
+        // ====== 6. 📦 完整資料庫檢視 (包含圖案、獨有 QR Code、流水編號) ======
         function showDatabaseView() {
             const container = document.getElementById('app-content');
             let cards = database.map(item => `
@@ -505,7 +505,7 @@
                             <span class="text-[10px] font-mono text-gray-400">${item.id}</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    <div id="db-qr-${item.id}" class="w-10 h-10 border p-0.5 rounded bg-white flex-shrink-0"></div>
                 </div>`).join('');
 
             container.innerHTML = `
@@ -516,6 +516,16 @@
                     </div>
                     ${cards}
                 </div>`;
+
+            // 動態為清單卡片生成微型 QR Code
+            setTimeout(() => {
+                database.forEach(item => {
+                    const el = document.getElementById(`db-qr-${item.id}`);
+                    if (el) {
+                        new QRCode(el, { text: item.id, width: 36, height: 36 });
+                    }
+                });
+            }, 50);
         }
 
         // ====== 7. T 文字搜尋 Modal ======
@@ -529,7 +539,7 @@
             }
         }
 
-        // ====== 8. 📷 相機掃碼 Modal (拒絕則跳回初始頁面) ======
+        // ====== 8. 📷 相機掃碼 Modal (不允許存取時直接跳回首頁) ======
         let html5QrCode = null;
         function openScannerModal() {
             document.getElementById('scanner-modal').classList.remove('hidden');
@@ -545,7 +555,7 @@
                 },
                 (errorMessage) => { /* 忽略中間幀解析失敗 */ }
             ).catch((err) => {
-                // 使用者不允許相機時，直接跳回一開始的頁面
+                // 若使用者不允許存取相機，直接跳回一開始的頁面
                 alert("未取得相機存取權限，直接跳回初始頁面。");
                 closeScannerModal();
             });
