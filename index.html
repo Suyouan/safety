@@ -45,7 +45,7 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; }
         
-        /* ISO 7010 黃色警告三角形樣式 */
+        /* ISO 7010 黃色警告三角形 */
         .iso-triangle-container {
             width: 0;
             height: 0;
@@ -67,7 +67,7 @@
         /* 圓形 (禁止/強制/救援) */
         .iso-circle { border-radius: 50%; }
 
-        /* 文字截斷 (多行截斷並顯示 ...) */
+        /* 多行文字截斷 (...) */
         .truncate-text {
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -79,7 +79,7 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased pb-24 min-h-screen relative select-none">
 
-    <!-- 1. 頂部導覽列 (多國語言切換 + 長按觸發後台主標題) -->
+    <!-- 1. 頂部導覽列 (多國語言切換 + 長按標題 3 秒進入後台) -->
     <header class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-200 z-40 px-4 py-3 shadow-sm">
         <div class="max-w-md mx-auto flex items-center justify-between">
             <!-- 核心主標題：長按 3 秒觸發審批流程 -->
@@ -132,7 +132,7 @@
 
     <!-- 3. 主要內容渲染區 -->
     <main id="app-content" class="max-w-md mx-auto px-4 mt-5">
-        <!-- JS 動態載入畫面 -->
+        <!-- JS 動態載入 -->
     </main>
 
     <!-- Modal: 文字查詢 (T) -->
@@ -205,7 +205,7 @@
 
     <!-- 核心邏輯 -->
     <script>
-        // ====== 1. 多國語言字典 (繁中 / EN / DE) ======
+        // ====== 1. 多國語言字典 (全頁面同步) ======
         let currentLang = localStorage.getItem('iso7010_lang') || 'zh';
 
         const i18n = {
@@ -236,6 +236,21 @@
                 emptyAdmin: "目前無任何待審批項目。",
                 cameraDenied: "未取得相機存取權限，直接跳回初始頁面。",
                 pendingAlert: "提交成功！內容已進入「待審批狀態」，等審核通過後，新的資訊與原有的訊息皆會呈現於該框格中。",
+                categories: {
+                    W: "警告標誌",
+                    P: "禁止標誌",
+                    M: "強制標誌",
+                    E: "救護標誌",
+                    F: "消防標誌"
+                },
+                signNames: {
+                    "W-ElectricDanger-L4": "感電注意 (Electricity Danger)",
+                    "W-Slippery-L2": "滑倒危險 (Slippery Surface)",
+                    "P-NoSmoking": "禁止吸菸 (No Smoking)",
+                    "M-WearEyeProtection": "佩戴護目鏡 (Wear Eye Protection)",
+                    "E-FirstAid": "急救站 (First Aid Station)",
+                    "F-Extinguisher": "滅火器 (Fire Extinguisher)"
+                },
                 fields: {
                     frequency: "發生頻率",
                     elimination: "消除",
@@ -261,7 +276,7 @@
                 pwaTitle: "Install App for Best Experience",
                 uniqueQr: "Unique QR-Code",
                 subDirHeader: "Warning Sign Sub-directory Matrix",
-                boxHint: "Double-click to submit / Long-press 3s expand",
+                boxHint: "Double-click submit / Press 3s expand",
                 noData: "No Data Available",
                 detailTitle: "Detailed Content",
                 level: "Level",
@@ -273,13 +288,28 @@
                 emptyAdmin: "No pending approval items.",
                 cameraDenied: "Camera permission denied, returned to main page.",
                 pendingAlert: "Submitted! Entry is now in 'Pending Approval' state.",
+                categories: {
+                    W: "Warning Sign",
+                    P: "Prohibition Sign",
+                    M: "Mandatory Sign",
+                    E: "Emergency Sign",
+                    F: "Fire Safety Sign"
+                },
+                signNames: {
+                    "W-ElectricDanger-L4": "Electricity Danger",
+                    "W-Slippery-L2": "Slippery Surface",
+                    "P-NoSmoking": "No Smoking",
+                    "M-WearEyeProtection": "Wear Eye Protection",
+                    "E-FirstAid": "First Aid Station",
+                    "F-Extinguisher": "Fire Extinguisher"
+                },
                 fields: {
                     frequency: "Frequency",
                     elimination: "Elimination",
                     substitution: "Substitution",
                     engineering: "Engineering Controls",
                     administrative: "Administrative Controls",
-                    ppe: "PPE",
+                    ppe: "Personal Protective Equipment",
                     riskLevel: "Risk Level"
                 }
             },
@@ -298,7 +328,7 @@
                 pwaTitle: "App installieren für beste Erfahrung",
                 uniqueQr: "Eindeutiger QR-Code",
                 subDirHeader: "Warnzeichen Unterverzeichnis-Matrix",
-                boxHint: "Doppelklick zum Senden / 3s halten zum Öffnen",
+                boxHint: "Doppelklick Senden / 3s halten Öffnen",
                 noData: "Keine Daten vorhanden",
                 detailTitle: "Detaillierter Inhalt",
                 level: "Stufe",
@@ -310,106 +340,91 @@
                 emptyAdmin: "Keine ausstehenden Anträge.",
                 cameraDenied: "Kamerazugriff verweigert, zurück zur Hauptseite.",
                 pendingAlert: "Eingereicht! Eintrag befindet sich im Status 'Ausstehend'.",
+                categories: {
+                    W: "Warnzeichen",
+                    P: "Verbotszeichen",
+                    M: "Gebotszeichen",
+                    E: "Rettungszeichen",
+                    F: "Brandschutzzeichen"
+                },
+                signNames: {
+                    "W-ElectricDanger-L4": "Warnung vor elektrischer Spannung",
+                    "W-Slippery-L2": "Warnung vor Rutschgefahr",
+                    "P-NoSmoking": "Rauchen verboten",
+                    "M-WearEyeProtection": "Augenschutz tragen",
+                    "E-FirstAid": "Erste Hilfe",
+                    "F-Extinguisher": "Feuerlöscher"
+                },
                 fields: {
                     frequency: "Häufigkeit",
                     elimination: "Beseitigung",
                     substitution: "Substitution",
                     engineering: "Technische Schutzmaßnahmen",
                     administrative: "Organisatorische Maßnahmen",
-                    ppe: "PSA",
+                    ppe: "Persönliche Schutzausrüstung",
                     riskLevel: "Risikostufe"
                 }
             }
         };
 
-        // ====== 2. ISO 7010 資料庫 ======
+        // ====== 2. ISO 7010 資料庫預設值 ======
         const defaultDatabase = [
             {
                 id: "W-ElectricDanger-L4",
                 category: "W",
-                categoryName: { zh: "警告標誌", en: "Warning Sign", de: "Warnzeichen" },
-                name: { zh: "感電注意 (Electricity Danger)", en: "Electricity Danger", de: "Warnung vor gefährlicher elektrischer Spannung" },
                 level: 4,
                 iconClass: "fa-bolt",
                 fields: {
-                    frequency: ["高 (高壓設備區域) / High / Hoch"],
-                    elimination: ["完全斷電程序 / Full Isolation / Vollständige Freischaltung"],
-                    substitution: ["低壓防爆電路 / Low-voltage Circuit / Niederspannungsstromkreis"],
-                    engineering: ["絕緣保護罩與漏電斷路器 / Insulation & RCD / Isolierung & FI-Schutzschalter"],
-                    administrative: ["作業簽核許可制度 / Work Permit System / Arbeitserlaubnissystem"],
-                    ppe: ["高壓絕緣手套與防爆鞋 / Insulated Gloves & Boots / Isolierhandschuhe & Sicherheitsschuhe"],
-                    riskLevel: ["極高風險 (等級 4) / High Risk (Level 4) / Hohes Risiko (Stufe 4)"]
+                    frequency: ["高 (高壓設備區域)"],
+                    elimination: ["完全斷電程序"],
+                    substitution: ["低壓防爆電路"],
+                    engineering: ["絕緣保護罩與漏電斷路器"],
+                    administrative: ["作業簽核許可制度"],
+                    ppe: ["高壓絕緣手套與防爆鞋"],
+                    riskLevel: ["極高風險 (等級 4)"]
                 }
             },
             {
                 id: "W-Slippery-L2",
                 category: "W",
-                categoryName: { zh: "警告標誌", en: "Warning Sign", de: "Warnzeichen" },
-                name: { zh: "滑倒危險 (Slippery Surface)", en: "Slippery Surface", de: "Warnung vor Rutschgefahr" },
                 level: 2,
                 iconClass: "fa-person-falling-burst",
                 fields: {
-                    frequency: ["中 / Medium / Mittel"],
-                    elimination: ["定期清理油污 / Regular Oil Cleanup / Regelmäßige Reinigung"],
-                    substitution: ["防滑吸油墊 / Anti-slip Mats / Rutschfeste Matten"],
-                    engineering: ["加設止滑條 / Anti-slip Strips / Antirutschstreifen"],
-                    administrative: ["設置濕滑警示牌 / Wet Floor Signs / Warnschilder Aufstellen"],
-                    ppe: ["防滑安全鞋 / Anti-slip Shoes / Rutschfeste Schuhe"],
-                    riskLevel: ["中等風險 (等級 2) / Moderate Risk (Level 2) / Mittleres Risiko (Stufe 2)"]
+                    frequency: ["中 (清潔或下雨時)"],
+                    elimination: ["定期清理油污"],
+                    substitution: ["防滑吸油墊"],
+                    engineering: ["加設止滑條"],
+                    administrative: ["設置濕滑警示牌"],
+                    ppe: ["防滑安全鞋"],
+                    riskLevel: ["中等風險 (等級 2)"]
                 }
             },
-            {
-                id: "P-NoSmoking",
-                category: "P",
-                categoryName: { zh: "禁止標誌", en: "Prohibition Sign", de: "Verbotszeichen" },
-                name: { zh: "禁止吸菸 (No Smoking)", en: "No Smoking", de: "Rauchen verboten" },
-                level: null,
-                fields: null,
-                iconClass: "fa-ban-smoking"
-            },
-            {
-                id: "M-WearEyeProtection",
-                category: "M",
-                categoryName: { zh: "強制標誌", en: "Mandatory Sign", de: "Gebotszeichen" },
-                name: { zh: "佩戴護目鏡 (Wear Eye Protection)", en: "Wear Eye Protection", de: "Augenschutz tragen" },
-                level: null,
-                fields: null,
-                iconClass: "fa-glasses"
-            },
-            {
-                id: "E-FirstAid",
-                category: "E",
-                categoryName: { zh: "救護標誌", en: "Emergency Sign", de: "Rettungszeichen" },
-                name: { zh: "急救站 (First Aid Station)", en: "First Aid Station", de: "Erste Hilfe" },
-                level: null,
-                fields: null,
-                iconClass: "fa-kit-medical"
-            },
-            {
-                id: "F-Extinguisher",
-                category: "F",
-                categoryName: { zh: "消防標誌", en: "Fire Safety Sign", de: "Brandschutzzeichen" },
-                name: { zh: "滅火器 (Fire Extinguisher)", en: "Fire Extinguisher", de: "Feuerlöscher" },
-                level: null,
-                fields: null,
-                iconClass: "fa-fire-extinguisher"
-            }
+            { id: "P-NoSmoking", category: "P", level: null, fields: null, iconClass: "fa-ban-smoking" },
+            { id: "M-WearEyeProtection", category: "M", level: null, fields: null, iconClass: "fa-glasses" },
+            { id: "E-FirstAid", category: "E", level: null, fields: null, iconClass: "fa-kit-medical" },
+            { id: "F-Extinguisher", category: "F", level: null, fields: null, iconClass: "fa-fire-extinguisher" }
         ];
 
         let database = JSON.parse(localStorage.getItem('iso7010_db')) || defaultDatabase;
         let approvalQueue = JSON.parse(localStorage.getItem('iso7010_queue')) || [];
         let currentSignId = "W-ElectricDanger-L4";
+        let isDatabaseViewActive = false;
 
         function saveDB() { localStorage.setItem('iso7010_db', JSON.stringify(database)); }
         function saveQueue() { localStorage.setItem('iso7010_queue', JSON.stringify(approvalQueue)); }
 
-        // ====== 3. 語言切換邏輯 ======
+        // ====== 3. 多國語言與全介面同步切換 ======
         function changeLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('iso7010_lang', lang);
             document.getElementById('lang-select').value = lang;
             applyTranslations();
-            renderSignDetail(currentSignId);
+            
+            if (isDatabaseViewActive) {
+                showDatabaseView();
+            } else {
+                renderSignDetail(currentSignId);
+            }
         }
 
         function applyTranslations() {
@@ -456,6 +471,7 @@
 
         // ====== 5. 渲染標誌詳情頁 ======
         function renderSignDetail(id) {
+            isDatabaseViewActive = false;
             currentSignId = id;
             const item = database.find(x => x.id === id);
             const container = document.getElementById('app-content');
@@ -472,7 +488,7 @@
                 return;
             }
 
-            // ISO 7010 黃色警告三角形與等級呈現
+            // ISO 7010 黃色警告三角形與等級呈現 (數字在三角形正下方)
             let visualHtml = '';
             if (item.category === 'W') {
                 visualHtml = `
@@ -541,8 +557,8 @@
                     </div>`;
             }
 
-            const catName = typeof item.categoryName === 'object' ? item.categoryName[currentLang] : item.categoryName;
-            const signName = typeof item.name === 'object' ? item.name[currentLang] : item.name;
+            const catName = t.categories[item.category] || item.category;
+            const signName = t.signNames[item.id] || item.id;
 
             container.innerHTML = `
                 <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
@@ -567,7 +583,7 @@
                     ${fieldsHtml}
                 </div>`;
 
-            // 動態生成 QR Code
+            // 動態生成 QR Code (內容即為流水 ID)
             setTimeout(() => {
                 const box = document.getElementById("qrcode-box");
                 if (box) {
@@ -610,7 +626,7 @@
         // ====== 6. 雙擊框格提交輸入 ======
         function triggerDoubleClickSubmit(signId, fieldKey, fieldLabel) {
             const t = i18n[currentLang];
-            const userInput = prompt(`[${fieldLabel}]\nPath: ${signId}\n\nEnter new details:`);
+            const userInput = prompt(`[${fieldLabel}]\nPath: ${signId}\n\nEnter input:`);
             if (userInput && userInput.trim() !== '') {
                 const record = {
                     id: Date.now(),
@@ -629,11 +645,12 @@
 
         // ====== 7. 📦 完整資料庫檢視 ======
         function showDatabaseView() {
+            isDatabaseViewActive = true;
             const container = document.getElementById('app-content');
             const t = i18n[currentLang];
 
             let cards = database.map(item => {
-                const signName = typeof item.name === 'object' ? item.name[currentLang] : item.name;
+                const signName = t.signNames[item.id] || item.id;
                 return `
                 <div onclick="renderSignDetail('${item.id}')" class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between active:scale-[0.98] transition cursor-pointer">
                     <div class="flex items-center space-x-3">
