@@ -508,21 +508,10 @@ async ()=>{
 
     //每5秒同步一次
     setInterval(async ()=>{
-
-        await loadApprovedContents();
-
-        //避免在資料庫頁面強制跳轉
-        if(!isDatabaseViewActive){
-
-            renderSignDetail(
-                currentSignId
-            );
-
-        }
-
-    },5000);
-
-});
+ 
+await loadApprovedContents();
+ 
+},5000);
 
         // ====== 4. 主標題長按 3 秒進入後台審批 ======
         function initLongPressAdmin() {
@@ -903,7 +892,7 @@ ${t.promptInput}`
 
     //重新整理後台待審批清單
     await loadPendingQueue();
-
+closeAdminModal();
 }
 
 
