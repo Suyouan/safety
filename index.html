@@ -924,21 +924,22 @@ async function syncApprovedData(){
 
         async function approveApproval(recordId){
 
-    await fetch(
-        API_URL,
-        {
-            method:"POST",
-            body:JSON.stringify({
-                action:"approve",
-                password:ADMIN_PASSWORD,
-                recordId:recordId
-            })
-        }
+    await fetch(API_URL,{
+        method:"POST",
+        body:JSON.stringify({
+            action:"approve",
+            password:ADMIN_PASSWORD,
+            recordId:recordId
+        })
+    });
+
+    await new Promise(resolve =>
+        setTimeout(resolve,1500)
     );
 
     await loadApprovedContents();
 
-    updateCurrentFieldContents();
+    renderSignDetail(currentSignId);
 
     await loadPendingQueue();
 
