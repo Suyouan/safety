@@ -497,7 +497,6 @@
 async ()=>{
 
     await loadApprovedContents();
-    
 
     applyTranslations();
 
@@ -506,18 +505,24 @@ async ()=>{
     );
 
     initLongPressAdmin();
+
+    //每5秒同步一次
     setInterval(async ()=>{
 
-    await loadApprovedContents();
+        await loadApprovedContents();
 
-    if(!isDatabaseViewActive){
-        renderSignDetail(currentSignId);
-    }
+        //避免在資料庫頁面強制跳轉
+        if(!isDatabaseViewActive){
 
-},5000);
+            renderSignDetail(
+                currentSignId
+            );
 
-}
-);
+        }
+
+    },5000);
+
+});
 
         // ====== 4. 主標題長按 3 秒進入後台審批 ======
         function initLongPressAdmin() {
@@ -866,25 +871,41 @@ ${t.promptInput}`
 
         async function approveApproval(recordId){
 
-    await fetch(API_URL,{
-        method:"POST",
-        body:JSON.stringify({
-            action:"approve",
-            password:ADMIN_PASSWORD,
-            recordId:recordId
-        })
-    });
+    await fetch(
 
-    //重新讀取已核准資料
+        API_URL,
+
+        {
+
+            method:"POST",
+
+            body:JSON.stringify({
+
+                action:"approve",
+
+                password:
+                ADMIN_PASSWORD,
+
+                recordId:
+                recordId
+
+            })
+
+        }
+
+    );
+
+    //重新載入核准資料
     await loadApprovedContents();
 
     //重新渲染目前頁面
     renderSignDetail(currentSignId);
 
-    //更新後台清單
+    //重新整理後台待審批清單
     await loadPendingQueue();
 
 }
+
 
 
         async function loadPendingQueue(){
