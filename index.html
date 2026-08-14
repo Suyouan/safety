@@ -468,7 +468,7 @@
             if (isDatabaseViewActive) {
                 showDatabaseView();
             } else {
-                renderSignDetail(currentSignId);
+                updateCurrentFieldContents();
             }
         }
 
@@ -661,6 +661,30 @@ await loadApprovedContents();
             }, 50);
         }
 
+
+    function updateCurrentFieldContents(){
+
+    const item =
+    database.find(
+        x => x.id === currentSignId
+    );
+
+    if(!item) return;
+
+    document
+    .querySelectorAll('.field-box')
+    .forEach(box=>{
+
+        const label =
+        box.getAttribute(
+            'data-label'
+        );
+
+        //只更新內容文字
+
+    });
+
+}
         // 綁定長按 3 秒展開內容
         function bindLongPressEvents() {
             const boxes = document.querySelectorAll('.field-box');
@@ -886,9 +910,6 @@ ${t.promptInput}`
 
     //重新載入核准資料
     await loadApprovedContents();
-
-    //重新渲染目前頁面
-    renderSignDetail(currentSignId);
 
     //重新整理後台待審批清單
     await loadPendingQueue();
