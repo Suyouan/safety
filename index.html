@@ -448,16 +448,15 @@
 
         let database = JSON.parse(localStorage.getItem('iso7010_db_v2')) || defaultDatabase;
         let approvalQueue = [];
-        let dynamicAdditions = {};
+        let dynamicAdditions = JSON.parse(localStorage.getItem('iso7010_additions_v2')) || {};
         const API_URL =
         "https://script.google.com/macros/s/AKfycbzLRZIPUUpwHF3NKOO9WqD_PNAdhxlrYMrT8qoaJ_0quLxSmSewISy-itkVx2pH_4LU/exec";
 
         const ADMIN_PASSWORD = "0000";
         let currentSignId = "W-ElectricDanger-L4";
-        let currentRenderedSign = null;
-let lastApprovedHash = "";
-
         let isDatabaseViewActive = false;
+
+        function saveAdditions() { localStorage.setItem('iso7010_additions_v2', JSON.stringify(dynamicAdditions)); }
 
         // ====== 3. 多國語言與全介面同步切換 ======
         function changeLanguage(lang) {
@@ -469,12 +468,8 @@ let lastApprovedHash = "";
             if (isDatabaseViewActive) {
                 showDatabaseView();
             } else {
- 
-renderSignDetail(
-currentSignId
-);
- 
-}
+                renderSignDetail(currentSignId);
+            }
         }
 
         function applyTranslations() {
@@ -495,26 +490,24 @@ currentSignId
         }
 
         // 初始化
-       window.addEventListener(
+        window.addEventListener(
+
 'DOMContentLoaded',
 
 async ()=>{
- renderSignDetail(
-        currentSignId
-    );
+
     await loadApprovedContents();
 
     applyTranslations();
-    initLongPressAdmin();
 
-    setInterval(
-        syncApprovedData,
+    renderSignDetail(
+        currentSignId
     );
 
-});
-
     initLongPressAdmin();
 
+}
+);
 
         // ====== 4. 主標題長按 3 秒進入後台審批 ======
         function initLongPressAdmin() {
@@ -536,7 +529,6 @@ async ()=>{
 
         // ====== 5. 渲染標誌詳情頁 ======
         function renderSignDetail(id) {
-            currentRenderedSign = id;
             isDatabaseViewActive = false;
             currentSignId = id;
             const item = database.find(x => x.id === id);
@@ -601,8 +593,7 @@ async ()=>{
                     const itemsText = combinedList.join('； ');
 
                     return `
-                        <div id="field-${info.key}" 
-                        ondblclick="triggerDoubleClickSubmit('${item.id}', '${info.key}', '${info.label}')" 
+                        <div ondblclick="triggerDoubleClickSubmit('${item.id}', '${info.key}', '${info.label}')" 
                              data-label="${info.label}"
                              data-text="${itemsText || t.noData}"
                              class="field-box p-3 ${info.isRed ? 'bg-red-50/70 border-red-200' : 'bg-gray-50 border-gray-200'} border rounded-xl relative hover:border-amber-400 transition cursor-pointer select-none">
@@ -610,7 +601,7 @@ async ()=>{
                                 <span class="text-[11px] font-bold ${info.isRed ? 'text-red-700' : 'text-gray-500'}">${info.label}</span>
                                 <span class="text-[9px] text-gray-300">${t.boxHint}</span>
                             </div>
-                            <div class="content-area text-xs text-gray-800 font-medium truncate-text pointer-events-none">
+                            <div class="text-xs text-gray-800 font-medium truncate-text pointer-events-none">
                                 ${itemsText || `<span class="text-gray-300 italic">${t.noData}</span>`}
                             </div>
                         </div>`;
@@ -666,30 +657,6 @@ async ()=>{
             }, 50);
         }
 
-
-    function updateCurrentFieldContents(){
-
-    const item =
-    database.find(
-        x => x.id === currentSignId
-    );
-
-    if(!item) return;
-
-    document
-    .querySelectorAll('.field-box')
-    .forEach(box=>{
-
-        const label =
-        box.getAttribute(
-            'data-label'
-        );
-
-        //只更新內容文字
-
-    });
-
-}
         // 綁定長按 3 秒展開內容
         function bindLongPressEvents() {
             const boxes = document.querySelectorAll('.field-box');
@@ -885,65 +852,39 @@ ${t.promptInput}`
 
 }
 
-
-
-async function syncApprovedData(){
-
-    const response =
-        await fetch(
-            API_URL +
-            "?action=getApproved"
-        );
-
-    const rows =
-        await response.json();
-
-    const currentHash =
-        JSON.stringify(rows);
-
-    if(currentHash === lastApprovedHash){
-
-        return;
-
-    }
-
-    lastApprovedHash =
-        currentHash;
-
-    await loadApprovedContents();
-
-    updateCurrentFieldContents();
-
-}
-    
         function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); }
 
-        async function approveApproval(recordId){
+        async function approveApproval(
+    recordId
+){
 
-    await fetch(API_URL,{
-        method:"POST",
-        body:JSON.stringify({
-            action:"approve",
-            password:ADMIN_PASSWORD,
-            recordId:recordId
-        })
-    });
+    await fetch(
 
-    await new Promise(resolve =>
-        setTimeout(resolve,500)
+        API_URL,
+
+        {
+
+            method:"POST",
+
+            body:JSON.stringify({
+
+                action:"approve",
+
+                password:
+                ADMIN_PASSWORD,
+
+                recordId:
+                recordId
+
+            })
+
+        }
+
     );
 
-    await loadApprovedContents();
-    await loadPendingQueue();
-
-    updateCurrentFieldContents();
-
-    
-
-    closeAdminModal();
+    loadPendingQueue();
 
 }
-
 
 
         async function loadPendingQueue(){
@@ -963,20 +904,38 @@ async function syncApprovedData(){
 
 }
         
-        async function rejectApproval(recordId){
+        async function rejectApproval(
+    recordId
+){
 
-    await fetch(API_URL,{
-        method:"POST",
-        body:JSON.stringify({
-            action:"reject",
-            password:ADMIN_PASSWORD,
-            recordId:recordId
-        })
-    });
+    await fetch(
 
-    await loadPendingQueue();
+        API_URL,
+
+        {
+
+            method:"POST",
+
+            body:JSON.stringify({
+
+                action:"reject",
+
+                password:
+                ADMIN_PASSWORD,
+
+                recordId:
+                recordId
+
+            })
+
+        }
+
+    );
+
+    loadPendingQueue();
 
 }
+
 
 async function loadApprovedContents(){
 
