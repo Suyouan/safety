@@ -447,15 +447,12 @@
         ];
 
         let database = JSON.parse(localStorage.getItem('iso7010_db_v2')) || defaultDatabase;
-        let approvalQueue = [];
-        let dynamicAdditions = JSON.parse(localStorage.getItem('iso7010_additions_v2')) || {};
-        const API_URL =
-        "https://script.google.com/macros/s/AKfycbzLRZIPUUpwHF3NKOO9WqD_PNAdhxlrYMrT8qoaJ_0quLxSmSewISy-itkVx2pH_4LU/exec";
-
-        const ADMIN_PASSWORD = "0000";
+        let approvalQueue = JSON.parse(localStorage.getItem('iso7010_queue_v2')) || [];
+        let dynamicAdditions = JSON.parse(localStorage.getItem('iso7010_additions_v2')) || {}; 
         let currentSignId = "W-ElectricDanger-L4";
         let isDatabaseViewActive = false;
 
+        function saveQueue() { localStorage.setItem('iso7010_queue_v2', JSON.stringify(approvalQueue)); }
         function saveAdditions() { localStorage.setItem('iso7010_additions_v2', JSON.stringify(dynamicAdditions)); }
 
         // ====== 3. 多國語言與全介面同步切換 ======
@@ -490,24 +487,11 @@
         }
 
         // 初始化
-        window.addEventListener(
-
-'DOMContentLoaded',
-
-async ()=>{
-
-    await loadApprovedContents();
-
-    applyTranslations();
-
-    renderSignDetail(
-        currentSignId
-    );
-
-    initLongPressAdmin();
-
-}
-);
+        window.addEventListener('DOMContentLoaded', () => {
+            applyTranslations();
+            renderSignDetail(currentSignId);
+            initLongPressAdmin();
+        });
 
         // ====== 4. 主標題長按 3 秒進入後台審批 ======
         function initLongPressAdmin() {
@@ -687,60 +671,24 @@ async ()=>{
         function closeDetailModal() { document.getElementById('detail-modal').classList.add('hidden'); }
 
         // ====== 6. 雙擊框格提交輸入 ======
-        async function triggerDoubleClickSubmit(
-    signId,
-    fieldKey,
-    fieldLabel
-){
+        function triggerDoubleClickSubmit(signId, fieldKey, fieldLabel) {
+            const t = i18n[currentLang];
+            const userInput = prompt(`[${fieldLabel}]\nPath: ${signId}\n\n${t.promptInput}`);
+            if (userInput && userInput.trim() !== '') {
+                const record = {
+                    id: Date.now(),
+                    signId: signId,
+                    fieldKey: fieldKey,
+                    fieldLabel: fieldLabel,
+                    content: userInput.trim(),
+                    time: new Date().toLocaleString()
+                };
 
-    const t = i18n[currentLang];
-
-    const userInput =
-    prompt(
-
-        `[${fieldLabel}]
-Path:${signId}
-
-${t.promptInput}`
-
-    );
-
-    if(!userInput){
-
-        return;
-
-    }
-
-    const result = await fetch(
-        API_URL,
-        {
-            method:"POST",
-            body:JSON.stringify({
-
-                action:"submit",
-
-                signId:signId,
-
-                fieldKey:fieldKey,
-
-                content:userInput
-
-            })
+                approvalQueue.push(record);
+                saveQueue();
+                alert(t.pendingAlert);
+            }
         }
-    );
-
-    const data =
-        await result.json();
-
-    if(data.status){
-
-        alert(
-            t.pendingAlert
-        );
-
-    }
-
-}
 
         // ====== 7. 📦 完整資料庫檢視 ======
         function showDatabaseView() {
@@ -829,264 +777,59 @@ ${t.promptInput}`
         }
 
         // ====== 9. 後台審批流程 (Admin Modal) ======
-        async function openAdminModal(){
+        function openAdminModal() {
+            const queueContainer = document.getElementById('admin-queue');
+            const t = i18n[currentLang];
 
-    const pwd =
-        prompt(
-            "請輸入管理密碼"
-        );
-
-    if(
-        pwd !==
-        ADMIN_PASSWORD
-    ){
-
-        alert(
-            "密碼錯誤"
-        );
-
-        return;
-    }
-
-    await loadPendingQueue();
-
-}
+            if (approvalQueue.length === 0) {
+                queueContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-8">${t.emptyAdmin}</p>`;
+            } else {
+                queueContainer.innerHTML = approvalQueue.map(item => `
+                    <div class="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2 text-xs">
+                        <div class="flex justify-between font-bold text-gray-700">
+                            <span>ID: ${item.signId}</span>
+                            <span class="text-[10px] text-gray-400">${item.time}</span>
+                        </div>
+                        <div class="text-amber-800 font-bold bg-amber-50 p-1.5 rounded border border-amber-200">
+                            ${item.fieldLabel}
+                        </div>
+                        <div class="text-gray-800 bg-white p-2 rounded border border-gray-100">
+                            ${item.content}
+                        </div>
+                        <div class="flex justify-end space-x-2 pt-1">
+                            <button onclick="rejectApproval(${item.id})" class="px-3 py-1 bg-gray-200 text-gray-700 rounded font-bold">${t.reject}</button>
+                            <button onclick="approveApproval(${item.id})" class="px-3 py-1 bg-emerald-600 text-white rounded font-bold">${t.approve}</button>
+                        </div>
+                    </div>`).join('');
+            }
+            document.getElementById('admin-modal').classList.remove('hidden');
+        }
 
         function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); }
 
-        async function approveApproval(
-    recordId
-){
+        function approveApproval(id) {
+            const item = approvalQueue.find(x => x.id === id);
+            if (item) {
+                if (!dynamicAdditions[item.signId]) dynamicAdditions[item.signId] = {};
+                if (!dynamicAdditions[item.signId][item.fieldKey]) dynamicAdditions[item.signId][item.fieldKey] = [];
+                
+                dynamicAdditions[item.signId][item.fieldKey].push(item.content);
+                saveAdditions();
 
-    await fetch(
+                approvalQueue = approvalQueue.filter(x => x.id !== id);
+                saveQueue();
 
-        API_URL,
-
-        {
-
-            method:"POST",
-
-            body:JSON.stringify({
-
-                action:"approve",
-
-                password:
-                ADMIN_PASSWORD,
-
-                recordId:
-                recordId
-
-            })
-
+                openAdminModal();
+                renderSignDetail(item.signId);
+            }
         }
 
-    );
-
-    loadPendingQueue();
-
-}
-
-
-        async function loadPendingQueue(){
-
-    const response =
-    await fetch(
-
-        API_URL +
-        "?action=getPending"
-
-    );
-
-    approvalQueue =
-        await response.json();
-
-    renderPendingQueue();
-
-}
-        
-        async function rejectApproval(
-    recordId
-){
-
-    await fetch(
-
-        API_URL,
-
-        {
-
-            method:"POST",
-
-            body:JSON.stringify({
-
-                action:"reject",
-
-                password:
-                ADMIN_PASSWORD,
-
-                recordId:
-                recordId
-
-            })
-
+        function rejectApproval(id) {
+            approvalQueue = approvalQueue.filter(x => x.id !== id);
+            saveQueue();
+            openAdminModal();
         }
 
-    );
-
-    loadPendingQueue();
-
-}
-
-
-async function loadApprovedContents(){
-
-    const response =
-    await fetch(
-
-        API_URL +
-        "?action=getApproved"
-
-    );
-
-    const rows =
-        await response.json();
-
-    dynamicAdditions = {};
-
-    rows
-    .slice(1)
-    .forEach(row=>{
-
-        const signId =
-            row[1];
-
-        const fieldKey =
-            row[2];
-
-        const content =
-            row[3];
-
-        if(
-            !dynamicAdditions[
-                signId
-            ]
-        ){
-
-            dynamicAdditions[
-                signId
-            ] = {};
-
-        }
-
-        if(
-            !dynamicAdditions[
-                signId
-            ][
-                fieldKey
-            ]
-        ){
-
-            dynamicAdditions[
-                signId
-            ][
-                fieldKey
-            ] = [];
-
-        }
-
-        dynamicAdditions[
-            signId
-        ][
-            fieldKey
-        ].push(
-            content
-        );
-
-    });
-
-}
-
-
-        
-
-        function renderPendingQueue(){
-
-    const queueContainer =
-    document.getElementById(
-        "admin-queue"
-    );
-
-    if(
-        approvalQueue.length <= 1
-    ){
-
-        queueContainer.innerHTML =
-        `
-        <p>
-        無待審批資料
-        </p>
-        `;
-
-        return;
-    }
-
-    queueContainer.innerHTML =
-    approvalQueue
-    .slice(1)
-    .map(row=>{
-
-        return `
-
-        <div class="p-3 border rounded">
-
-            <div>
-                ${row[1]}
-            </div>
-
-            <div>
-                ${row[2]}
-            </div>
-
-            <div>
-                ${row[3]}
-            </div>
-
-            <button
-            onclick="
-            approveApproval(
-                '${row[0]}'
-            )
-            ">
-            核准
-            </button>
-
-            <button
-            onclick="
-            rejectApproval(
-                '${row[0]}'
-            )
-            ">
-            否決
-            </button>
-
-        </div>
-
-        `;
-
-    })
-    .join('');
-
-    document
-    .getElementById(
-        'admin-modal'
-    )
-    .classList
-    .remove(
-        'hidden'
-    );
-
-}
-
-        
         function setupPWAInstructions() {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             const el = document.getElementById('pwa-instructions');
