@@ -499,15 +499,12 @@ currentSignId
 'DOMContentLoaded',
 
 async ()=>{
-
+ renderSignDetail(
+        currentSignId
+    );
     await loadApprovedContents();
 
     applyTranslations();
-
-    renderSignDetail(
-        currentSignId
-    );
-
     initLongPressAdmin();
 
     setInterval(
@@ -933,14 +930,15 @@ async function syncApprovedData(){
     });
 
     await new Promise(resolve =>
-        setTimeout(resolve,1500)
+        setTimeout(resolve,500)
     );
 
     await loadApprovedContents();
-
-    renderSignDetail(currentSignId);
-
     await loadPendingQueue();
+
+    updateCurrentFieldContents();
+
+    
 
     closeAdminModal();
 
