@@ -506,12 +506,6 @@ async ()=>{
 
     initLongPressAdmin();
 
-    //每5秒同步一次
-    setInterval(async ()=>{
- 
-await loadApprovedContents();
- 
-},5000);
 
         // ====== 4. 主標題長按 3 秒進入後台審批 ======
         function initLongPressAdmin() {
@@ -885,35 +879,23 @@ ${t.promptInput}`
         async function approveApproval(recordId){
 
     await fetch(
-
         API_URL,
-
         {
-
             method:"POST",
-
             body:JSON.stringify({
-
                 action:"approve",
-
-                password:
-                ADMIN_PASSWORD,
-
-                recordId:
-                recordId
-
+                password:ADMIN_PASSWORD,
+                recordId:recordId
             })
-
         }
-
     );
 
-    //重新載入核准資料
     await loadApprovedContents();
 
-    //重新整理後台待審批清單
     await loadPendingQueue();
-closeAdminModal();
+
+    closeAdminModal();
+
 }
 
 
